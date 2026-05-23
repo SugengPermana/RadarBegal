@@ -4,8 +4,10 @@ import { useState } from "react";
 import { ChevronRight, Search, Settings2, ShieldCheck, Siren, Navigation, AlertTriangle, X, MapPin, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
 
-// Dummy data
+// Dummy data (Fallback)
 const INITIAL_INCIDENTS = [
   {
     id: "WG-8492",
@@ -17,28 +19,6 @@ const INITIAL_INCIDENTS = [
     distance: 2.4,
     risk: "CRITICAL",
     description: "Dua tersangka dengan sepeda motor hitam mendekati korban. Tersangka mengacungkan senjata tajam (celurit) dan menuntut dompet korban. Tersangka melarikan diri ke arah selatan menuju Blok M."
-  },
-  {
-    id: "WG-8493",
-    date: "Oct 24, 2023",
-    time: "19:15 WIB",
-    title: "Jambret (Snatch Theft)",
-    type: "Jambret",
-    location: "Jl. Thamrin, Sarinah crossing",
-    distance: 5.1,
-    risk: "ELEVATED",
-    description: "Seorang pelaku bermotor memepet korban yang sedang berjalan dan merampas ponsel korban. Pelaku melarikan diri dengan kecepatan tinggi melanggar lampu merah."
-  },
-  {
-    id: "WG-8494",
-    date: "Oct 23, 2023",
-    time: "14:30 WIB",
-    title: "Suspicious Activity",
-    type: "Suspicious",
-    location: "Blok M Square Parking Lot",
-    distance: 1.2,
-    risk: "WATCH",
-    description: "Dilaporkan adanya kerumunan orang yang mencurigakan di area parkir bawah tanah. Satpam sedang menyelidiki laporan tersebut."
   }
 ];
 
@@ -47,7 +27,50 @@ export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState([{ type: "RISK", value: "High" }]);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState<typeof INITIAL_INCIDENTS[0] | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<any>(null);
+  const [incidentsData, setIncidentsData] = useState<any[]>(INITIAL_INCIDENTS);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchIncidents() {
+      try {
+        const { data, error } = await supabase
+          .from('incidents')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Error fetching incidents from Supabase:", error);
+          setIncidentsData(INITIAL_INCIDENTS); // Fallback to dummy data
+        } else if (data && data.length > 0) {
+          // Map Supabase data to match component structure
+          const mappedData = data.map((item: any) => ({
+            id: `SB-${item.id}`,
+            date: new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            time: item.time || new Date(item.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB',
+            title: item.title,
+            type: item.type,
+            location: item.location,
+            distance: parseFloat(item.distance) || 0,
+            risk: item.risk === 'TINGGI' ? 'CRITICAL' : item.risk === 'SEDANG' ? 'ELEVATED' : 'WATCH',
+            description: item.description
+          }));
+          
+          // Optionally filter by type here if we want to ensure no Jambret/Suspicious from DB
+          setIncidentsData(mappedData.filter((d: any) => d.type !== 'Jambret' && d.type !== 'Suspicious'));
+        } else {
+          setIncidentsData(INITIAL_INCIDENTS);
+        }
+      } catch (err) {
+        console.error("Failed to fetch from Supabase", err);
+        setIncidentsData(INITIAL_INCIDENTS);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchIncidents();
+  }, []);
 
   const removeFilter = (index: number) => {
     setActiveFilters(prev => prev.filter((_, i) => i !== index));
@@ -62,7 +85,7 @@ export default function HistoryPage() {
   };
 
   // Filter based on search (simple title/location match)
-  const filteredIncidents = INITIAL_INCIDENTS.filter(incident => {
+  const filteredIncidents = incidentsData.filter(incident => {
     const matchesSearch = incident.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           incident.location.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -210,7 +233,9 @@ export default function HistoryPage() {
 
       {/* Data List */}
       <div className="space-y-4">
-        {filteredIncidents.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12 text-slate-500">Loading history...</div>
+        ) : filteredIncidents.length === 0 ? (
           <div className="text-center py-12 text-slate-500">Tidak ada insiden yang sesuai dengan filter atau pencarian.</div>
         ) : filteredIncidents.map((incident) => (
           <div 

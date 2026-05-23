@@ -4,50 +4,8 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, MapPin, Search, Filter, ShieldAlert, X, CheckCircle2, AlertCircle, Clock, TrendingUp, Activity, ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
-const MAP_INCIDENTS = [
-  {
-    id: 1,
-    title: "Potensi Begal Fatal",
-    time: "02:14 AM",
-    timeElapsed: "10 mins ago",
-    distance: "1.2km dari Anda",
-    description: "AI mendeteksi anomali pergerakan sekelompok motor berhenti di area minim cahaya mencurigakan membawa senjata tajam.",
-    risk: "TINGGI",
-    lat: 40,
-    lng: 35,
-    type: "Kriminal",
-    location: "Sudirman",
-    isVerified: false
-  },
-  {
-    id: 2,
-    title: "Laporan Begal Berenjata",
-    time: "03:30 AM",
-    timeElapsed: "45 mins ago",
-    distance: "3.5km dari Anda",
-    description: "Seseorang melaporkan pembegalan fatal dengan senjata tajam, pengambilan motor dan barang berharga korban.",
-    risk: "TINGGI",
-    lat: 65,
-    lng: 60,
-    type: "Kriminal",
-    location: "Kuningan",
-    isVerified: true
-  },
-  {
-    id: 3,
-    title: "Komplotan Meresahkan",
-    time: "04:20 AM",
-    timeElapsed: "2 hours ago",
-    distance: "5.0km dari Anda",
-    description: "Kamera CCTV menangkap kawanan mencurigakan menggunakan senjata tajam melakukan penyisiran target begal.",
-    risk: "SEDANG",
-    lat: 25,
-    lng: 70,
-    type: "Kriminal",
-    location: "Kemang",
-    isVerified: true
-  }
-];
+import { MAP_INCIDENTS } from "@/data/data";
+import { supabase } from "@/lib/supabase";
 
 
 
@@ -59,12 +17,31 @@ export default function Dashboard() {
   const [locationError, setLocationError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAlertToast, setShowAlertToast] = useState(false);
+  const [incidentsData, setIncidentsData] = useState(MAP_INCIDENTS);
   const [isLoadingIncidents, setIsLoadingIncidents] = useState(true);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
 
   useEffect(() => {
-    // Simulate loading data
-    const loadingTimer = setTimeout(() => setIsLoadingIncidents(false), 2000);
+    async function fetchIncidents() {
+      try {
+        const { data, error } = await supabase
+          .from('incidents')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Error fetching incidents:", error);
+        } else if (data && data.length > 0) {
+          setIncidentsData(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch from Supabase:", err);
+      } finally {
+        setIsLoadingIncidents(false);
+      }
+    }
+
+    fetchIncidents();
 
     // Parse URL for incident id targeting
     if (typeof window !== 'undefined') {
@@ -82,17 +59,16 @@ export default function Dashboard() {
     const timer = setTimeout(() => setShowAlertToast(true), 3000);
     return () => {
       clearTimeout(timer);
-      clearTimeout(loadingTimer);
     };
   }, []);
 
-  const filteredIncidents = MAP_INCIDENTS.filter(inc => 
+  const filteredIncidents = incidentsData.filter((inc: any) => 
     inc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     inc.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
     inc.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const selectedIncident = MAP_INCIDENTS.find(inc => inc.id === selectedIncidentId);
+  const selectedIncident = incidentsData.find((inc: any) => inc.id === selectedIncidentId);
 
   const handleGetLocation = () => {
     setIsLocating(true);
@@ -308,7 +284,7 @@ export default function Dashboard() {
       {/* FAB: REPORT INCIDENT */}
       <Link 
         href="/lapor"
-        className={`pointer-events-auto absolute z-30 bottom-8 z-30 bg-teal-600 text-white rounded-full px-6 py-4 flex items-center gap-3 shadow-[0_0_20px_rgba(13,148,136,0.4)] hover:scale-105 hover:bg-teal-500 transition-all duration-500 group ${isSidebarOpen ? 'right-4 lg:right-[420px] xl:right-[470px]' : 'right-4 md:right-8'}`}
+        className={`pointer-events-auto absolute z-30 bottom-8 bg-teal-600 text-white rounded-full px-6 py-4 flex items-center gap-3 shadow-[0_0_20px_rgba(13,148,136,0.4)] hover:scale-105 hover:bg-teal-500 transition-all duration-500 group ${isSidebarOpen ? 'right-4 lg:right-[420px] xl:right-[470px]' : 'right-4 md:right-8'}`}
       >
         <AlertTriangle className="w-6 h-6 animate-pulse" />
         <span className="font-bold tracking-wide">REPORT INCIDENT</span>

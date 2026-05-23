@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-700: #222222;
+  --color-slate-800: #111111;
+  --color-slate-900: #000000;
+  --color-slate-950: #000000;
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}

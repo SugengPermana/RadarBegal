@@ -15,8 +15,23 @@ CREATE TABLE public.incidents (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+create table berita_begal (
+  id bigint generated always as identity primary key,
+  judul text not null,
+  isi_berita text,
+  latitude double precision not null,
+  longitude double precision not null,
+  radius_meter integer not null default 300,
+  lokasi text not null default 'Jakarta',
+  status_verifikasi text not null default 'Menunggu Validasi',
+  kategori text not null default 'Begal',
+  tingkat_risiko text not null default 'WATCH',
+  created_at timestamp with time zone default timezone('utc', now())
+);
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.berita_begal ENABLE ROW LEVEL SECURITY;
 
 -- Create policy to allow anyone to read incidents (Public Read)
 CREATE POLICY "Enable read access for all users"
@@ -29,3 +44,21 @@ VALUES
 (1, 'Potensi Begal Fatal', '02:14 AM', '10 mins ago', '1.2km dari Anda', 'AI mendeteksi anomali pergerakan sekelompok motor berhenti di area minim cahaya mencurigakan membawa senjata tajam.', 'TINGGI', 40, 35, 'Kriminal', 'Sudirman', false),
 (2, 'Laporan Begal Berenjata', '03:30 AM', '45 mins ago', '3.5km dari Anda', 'Seseorang melaporkan pembegalan fatal dengan senjata tajam, pengambilan motor dan barang berharga korban.', 'TINGGI', 65, 60, 'Kriminal', 'Kuningan', true),
 (3, 'Komplotan Meresahkan', '04:20 AM', '2 hours ago', '5.0km dari Anda', 'Kamera CCTV menangkap kawanan mencurigakan menggunakan senjata tajam melakukan penyisiran target begal.', 'SEDANG', 25, 70, 'Kriminal', 'Kemang', true);
+
+CREATE POLICY "Public Read Access"
+ON public.berita_begal FOR SELECT
+USING (true);
+
+INSERT INTO public.berita_begal (judul, isi_berita, latitude, longitude, radius_meter, lokasi, status_verifikasi, kategori, tingkat_risiko)
+VALUES
+(
+  'Aksi Begal di Tanah Abang',
+  'Dilaporkan telah terjadi perampasan motor dan kekerasan oleh sekelompok begal bersenjata di kawasan Tanah Abang. Korban dilaporkan terluka.',
+  -6.1874,
+  106.8166,
+  300,
+  'Tanah Abang, Jakarta Pusat',
+  'Terverifikasi Admin',
+  'Begal',
+  'CRITICAL'
+);

@@ -1,43 +1,152 @@
 "use client";
-
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MapPin, Camera, Image as ImageIcon, CheckCircle, Map, Target, AlertTriangle } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function LaporPage() {
+  const [coordinates, setCoordinates] = useState<{
+    lat: number | null;
+    lng: number | null;
+  }>({
+    lat: null,
+    lng: null,
+  });
+
+  function detectRisk(text: string) {
+    const highRiskKeywords = [
+      "begal",
+      "senjata",
+      "celurit",
+      "pistol",
+      "rampok",
+    ];
+
+    const lower = text.toLowerCase();
+
+    const isHigh = highRiskKeywords.some((word) =>
+      lower.includes(word)
+    );
+
+    if (isHigh) {
+      return {
+        risk: "HIGH",
+        radius: 2000,
+      };
+    }
+
+    return {
+      risk: "MEDIUM",
+      radius: 500,
+    };
+  }
+
+  const router = useRouter();
   const [formState, setFormState] = useState<"IDLE" | "PROCESSING" | "SUCCESS">("IDLE");
   const [resetKey, setResetKey] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
   const [locationText, setLocationText] = useState("Pilih lokasi atau ketuk Gunakan GPS");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormState("PROCESSING");
-    
-    // Simulate AI processing
-    setTimeout(() => {
-      setFormState("SUCCESS");
-    }, 2500);
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      router.push("/login");
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    if (!coordinates.lat || !coordinates.lng) {
+      alert("Gunakan GPS terlebih dahulu");
+      return;
+    }
+
+    try {
+      setFormState("PROCESSING");
+
+      const aiResult = detectRisk(deskripsi);
+
+      const { error } = await supabase
+        .from("incidents")
+        .insert({
+          kategori,
+          description: deskripsi,
+          latitude: coordinates.lat,
+          longitude: coordinates.lng,
+          lokasi: locationText,
+          tanggal,
+          waktu,
+          risk_level: aiResult.risk,
+          radius_meter: aiResult.radius,
+          status_verifikasi: "PENDING",
+          user_id: user.id,
+        });
+
+      if (error) {
+        console.error(error);
+        alert("Gagal mengirim laporan");
+        setFormState("IDLE");
+        return;
+      }
+
+      setFormState("SUCCESS");
+    } catch (err) {
+      console.error(err);
+      setFormState("IDLE");
+    }
+  };
+
 
   const handleGetLocation = () => {
     setIsLocating(true);
-    setLocationText("Mencari kordinat lokasi...");
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          setCoordinates({
+            lat,
+            lng,
+          });
+
+          setLocationText(
+            `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`
+          );
+
           setIsLocating(false);
-          setLocationText(`Lat: ${position.coords.latitude.toFixed(5)}, Lng: ${position.coords.longitude.toFixed(5)}`);
         },
-        (error) => {
+        () => {
+          setLocationText("Gagal mengambil lokasi");
           setIsLocating(false);
-          setLocationText("Gagal mengakses lokasi (Akses ditolak)");
         }
       );
-    } else {
-      setIsLocating(false);
-      setLocationText("Geolokasi tidak didukung pada browser ini");
     }
   };
+
+  const [kategori, setKategori] = useState("");
+  const [deskripsi, setDeskripsi] = useState("");
+  const [tanggal, setTanggal] = useState("");
+  const [waktu, setWaktu] = useState("");
 
   if (formState === "PROCESSING") {
     return (
@@ -65,7 +174,7 @@ export default function LaporPage() {
             <CheckCircle className="w-10 h-10 text-teal-400" />
           </div>
           <h2 className="text-3xl font-black text-slate-100 mb-2">Laporan Diterima</h2>
-          <p className="text-slate-400 px-4">Terima kasih atas kewaspadaan Anda. Peringatan telah didistribusikan.</p>
+          <p className="text-slate-400 px-4">Laporan berhasil dikirim dan sedang menunggu verifikasi admin.</p>
         </div>
 
         {/* AI Summary Card */}
@@ -85,7 +194,7 @@ export default function LaporPage() {
           </div>
         </div>
 
-        <button 
+        <button
           onClick={() => {
             setFormState("IDLE");
             setResetKey(prev => prev + 1);
@@ -94,7 +203,7 @@ export default function LaporPage() {
         >
           Kirim Laporan Lain
         </button>
-        <button 
+        <button
           onClick={() => window.location.href = '/'}
           className="mt-4 w-full bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold py-4 rounded-xl border border-slate-800 transition-colors flex items-center justify-center gap-2"
         >
@@ -113,11 +222,14 @@ export default function LaporPage() {
       </p>
 
       <form key={resetKey} onSubmit={handleSubmit} className="flex flex-col gap-6">
-        
+
         {/* Jenis Kejadian */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Jenis Kejadian</label>
-          <select required className="w-full appearance-none bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all cursor-pointer">
+          <select required className="w-full appearance-none bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all cursor-pointer"
+            value={kategori}
+            onChange={(e) => setKategori(e.target.value)}
+          >
             <option value="" disabled selected>Pilih kategori insiden...</option>
             <option value="kriminal">Tindak Kriminal (Maling, Begal)</option>
             <option value="kecelakaan">Kecelakaan Lalu Lintas</option>
@@ -130,11 +242,15 @@ export default function LaporPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Tanggal</label>
-            <input type="date" required className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none color-scheme-dark" />
+            <input type="date" value={tanggal}
+              onChange={(e) => setTanggal(e.target.value)} required className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none color-scheme-dark" />
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Waktu</label>
-            <input type="time" required className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none color-scheme-dark" />
+            <input
+              type="time"
+              value={waktu}
+              onChange={(e) => setWaktu(e.target.value)} required className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none color-scheme-dark" />
           </div>
         </div>
 
@@ -142,9 +258,9 @@ export default function LaporPage() {
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-end pl-1 mb-1">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Lokasi Kejadian</label>
-            <button 
-              type="button" 
-              onClick={handleGetLocation} 
+            <button
+              type="button"
+              onClick={handleGetLocation}
               disabled={isLocating}
               className="text-xs font-bold text-teal-500 cursor-pointer hover:underline uppercase disabled:opacity-50"
             >
@@ -153,12 +269,12 @@ export default function LaporPage() {
           </div>
           <div className="relative h-48 rounded-2xl border border-slate-800 overflow-hidden bg-slate-950 flex flex-col items-center justify-center group cursor-crosshair">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, #334155 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-            
+
             <div className="relative z-10 flex flex-col items-center drop-shadow-2xl">
               <MapPin className={`w-8 h-8 text-teal-500 drop-shadow-[0_0_8px_rgba(20,184,166,0.8)] ${isLocating ? 'animate-bounce' : ''}`} />
               <div className="w-2 h-2 bg-slate-400 rounded-full mt-1 opacity-50"></div>
             </div>
-            
+
             <div className="absolute bottom-3 pb-1 border-b border-transparent group-hover:border-slate-600 transition-colors px-4 text-center">
               <p className="text-xs text-slate-400 font-medium">{locationText}</p>
             </div>
@@ -168,9 +284,11 @@ export default function LaporPage() {
         {/* Deskripsi */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Detail Insiden</label>
-          <textarea 
+          <textarea
+            value={deskripsi}
+            onChange={(e) => setDeskripsi(e.target.value)}
             required
-            rows={4} 
+            rows={4}
             placeholder="Jelaskan apa yang terjadi, ciri-ciri pelaku, atau plat nomor kendaraan jika ada..."
             className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all resize-none placeholder:text-slate-600"
           ></textarea>
@@ -190,7 +308,7 @@ export default function LaporPage() {
 
         {/* Submit */}
         <div className="pt-6 mt-2 border-t border-slate-800/50">
-          <button 
+          <button
             type="submit"
             className="w-full bg-teal-600 hover:bg-teal-500 text-white shadow-[0_0_20px_rgba(13,148,136,0.3)] font-bold text-lg py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >

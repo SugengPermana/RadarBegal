@@ -2,7 +2,7 @@
 
 import { ShieldAlert, MapPin, Clock, ChevronRight, Search, X, Filter, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useState, Suspense } from "react";
+import { useEffect,useState, Suspense } from "react";
 import { useBerita } from "@/providers/BeritaProvider";
 import { useFilters } from "@/hooks/useFilters";
 
@@ -22,12 +22,20 @@ function BeritaContent() {
   const filteredBerita = applyFilters(beritaData);
   const heroBerita = filteredBerita[0];
   const restBerita = filteredBerita.slice(1);
+  const [searchInput, setSearchInput] = useState(filters.q || "");
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilter("q", searchInput);
+    }, 400);
+  
+    return () => clearTimeout(timer);
+  }, [searchInput, setFilter]);
   return (
     <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col pt-20 md:pt-8 bg-slate-950 relative z-10">
       <div className="mb-8">
-        <h1 className="text-4xl md:text-5xl font-black text-slate-100 mb-3 tracking-tight">Berita Keamanan Terkini</h1>
-        <p className="text-slate-400 text-lg">Informasi harian untuk kewaspadaan warga Jakarta.</p>
+        <h1 className="text-4xl md:text-5xl font-black text-slate-100 mb-3 tracking-tight">Informasi Berita Terkini</h1>
+        <p className="text-slate-400 text-lg">Berita harian kewaspadaan terhadap begal untuk Masyarakat Jabodetabek</p>
       </div>
 
       {/* Search & Filter Bar */}
@@ -37,12 +45,15 @@ function BeritaContent() {
           <input
             type="text"
             placeholder="Cari berita..."
-            value={filters.q}
-            onChange={(e) => setFilter("q", e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 text-slate-200 rounded-xl py-3 pl-12 pr-10 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all placeholder:text-slate-500 shadow-sm"
           />
-          {filters.q && (
-            <button onClick={() => setFilter("q", "")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+          {searchInput && (
+            <button onClick={() => {
+              setSearchInput("");
+              setFilter("q", "");
+            }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -63,16 +74,6 @@ function BeritaContent() {
               <button onClick={() => setShowFilterPanel(false)} className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded-full hover:bg-slate-800">
                 <X className="w-4 h-4" />
               </button>
-            </div>
-            <div>
-              <label className="block text-xs font-bold tracking-wider text-slate-500 mb-2 uppercase">Kategori</label>
-              <select value={filters.kategori} onChange={(e) => setFilter('kategori', e.target.value)} suppressHydrationWarning className="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-lg px-3 py-2 border-r-[8px] border-r-transparent focus:outline-none focus:border-teal-500 text-sm">
-                <option>Semua</option>
-                <option>Begal</option>
-                <option>Jambret</option>
-                <option>Suspicious</option>
-                <option>Kriminal</option>
-              </select>
             </div>
             <div>
               <label className="block text-xs font-bold tracking-wider text-slate-500 mb-2 uppercase">Tingkat Risiko</label>
@@ -96,8 +97,8 @@ function BeritaContent() {
               <label className="block text-xs font-bold tracking-wider text-slate-500 mb-2 uppercase">Status Verifikasi</label>
               <select value={filters.status} onChange={(e) => setFilter('status', e.target.value)} suppressHydrationWarning className="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-lg px-3 py-2 border-r-[8px] border-r-transparent focus:outline-none focus:border-teal-500 text-sm">
                 <option>Semua</option>
-                <option>Terverifikasi Admin</option>
-                <option>Menunggu Validasi</option>
+                <option>Terverifikasi</option>
+                <option>Belum Terverifikasi</option>
               </select>
             </div>
           </div>
@@ -110,7 +111,7 @@ function BeritaContent() {
         <div className="text-center py-12 text-slate-500">Belum ada berita sesuai filter.</div>
       ) : (
         <>
-          {/* Featured News / Hero */}
+          {/* Link untuk Masuk berita detail*/}
           {heroBerita && (
             <Link href={`/berita/${heroBerita.id}`} className="relative w-full h-[400px] md:h-[500px] rounded-3xl overflow-hidden mb-8 group cursor-pointer border border-slate-800 shadow-xl block">
               <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950"></div>
@@ -118,7 +119,7 @@ function BeritaContent() {
 
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-10 flex flex-col items-start">
                 <div className="flex items-center gap-4 mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${heroBerita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500/20 text-red-400 border-red-500/30' : heroBerita.tingkat_risiko === 'ELEVATED' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-teal-500/20 text-teal-400 border-teal-500/30'}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${heroBerita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500/20 text-red-400 border-red-500/30' : heroBerita.tingkat_risiko === 'ELEVATED' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
                     {heroBerita.kategori} — {heroBerita.tingkat_risiko}
                   </span>
                   <span className="text-slate-300 text-sm font-medium flex items-center gap-1">
@@ -151,9 +152,9 @@ function BeritaContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {restBerita.map((berita) => (
               <div key={berita.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col hover:bg-slate-800/80 transition-colors shadow-sm relative overflow-hidden group">
-                <div className={`absolute top-0 left-0 w-full h-1 ${berita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500' : berita.tingkat_risiko === 'ELEVATED' ? 'bg-amber-500' : 'bg-teal-500'}`}></div>
+                <div className={`absolute top-0 left-0 w-full h-1 ${berita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500' : berita.tingkat_risiko === 'ELEVATED' ? 'bg-orange-500' : 'bg-yellow-500'}`}></div>
                 <div className="flex justify-between items-center mb-4">
-                  <span className={`flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase ${berita.tingkat_risiko === 'CRITICAL' ? 'text-red-500' : berita.tingkat_risiko === 'ELEVATED' ? 'text-amber-500' : 'text-teal-500'}`}>
+                  <span className={`flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase ${berita.tingkat_risiko === 'CRITICAL' ? 'text-red-500' : berita.tingkat_risiko === 'ELEVATED' ? 'text-orange-500' : 'text-yellow-500'}`}>
                     <ShieldAlert className="w-4 h-4" /> {berita.kategori}
                   </span>
                   <span className="text-slate-500 text-xs font-medium flex items-center gap-1">

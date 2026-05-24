@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
-  History, 
+  FileWarning, 
   Newspaper, 
   Phone, 
   Settings, 
@@ -13,9 +13,9 @@ import {
   Bell, 
   User,
   AlertTriangle,
-  MapPin,
   ChevronLeft,
-  X
+  X,
+  Siren
 } from 'lucide-react';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -51,9 +51,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/history', icon: History, label: 'History' },
+    { href: '/kasus', icon: FileWarning, label: 'Kasus' },
     { href: '/berita', icon: Newspaper, label: 'Berita' },
-    { href: '/emergency', icon: Phone, label: 'Emergency' },
+    { href: '/emergency', icon: Siren, label: 'Emergency' },
   ];
 
   const currentPage = navItems.find((item) => item.href === pathname)?.label || 'Dashboard';
@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="md:hidden bg-slate-900/90 backdrop-blur-xl border-b border-slate-800 fixed top-0 w-full z-50">
         <div className="flex justify-between items-center px-4 h-16 w-full">
           <div className="flex flex-col">
-            <span className="text-[10px] text-teal-500 font-bold uppercase tracking-widest leading-none mb-1">Waspada.id</span>
+            <span className="text-[10px] text-teal-500 font-bold uppercase tracking-widest leading-none mb-1">RadarBegal</span>
             <div className="font-bold text-xl tracking-tighter text-slate-100 leading-none">{currentPage}</div>
           </div>
           <div className="flex gap-3 relative">
@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* TopNavBar (Desktop) */}
       <header className="hidden md:flex bg-slate-900/80 backdrop-blur-md border-b border-slate-800 fixed top-0 right-0 w-[calc(100%-280px)] h-16 z-30 px-8 items-center justify-between">
         <div className="flex flex-col justify-center">
-          <span className="text-[10px] text-teal-500 font-bold uppercase tracking-widest leading-none mb-1">Waspada.id</span>
+          <span className="text-[10px] text-teal-500 font-bold uppercase tracking-widest leading-none mb-1">RadarBegal</span>
           <h1 className="text-xl font-bold text-slate-100 leading-none">{currentPage}</h1>
         </div>
         <div className="flex items-center gap-4 relative">
@@ -137,10 +137,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="w-6 h-6 bg-teal-500 rounded flex items-center justify-center">
               <AlertTriangle className="w-3.5 h-3.5 text-slate-950" />
             </div>
-            <div className="text-xs text-teal-500 font-bold uppercase tracking-widest leading-none">Waspada.id</div>
+            <div className="text-xs text-teal-500 font-bold uppercase tracking-widest leading-none">RadarBegal</div>
           </div>
           <div className="font-bold text-3xl text-slate-100 tracking-tight leading-none capitalize">{currentPage}</div>
-          <p className="text-xs text-slate-500 mt-2 uppercase tracking-wider font-semibold">Jakarta Security Command</p>
+          <p className="text-xs text-slate-500 mt-2 uppercase tracking-wider font-semibold">Jabodetabek Security</p>
         </div>
         
         <div className="flex-1 px-4 space-y-2">
@@ -169,10 +169,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <User className="w-4 h-4 text-slate-300" />
             </div>
             <span>Account</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors font-medium">
-            <Settings className="w-5 h-5" />
-            <span>Settings</span>
           </Link>
           <Link href="#" className="flex items-center gap-4 px-4 py-3 rounded-xl text-amber-500 hover:bg-amber-500/10 transition-colors font-medium">
             <LogOut className="w-5 h-5" />

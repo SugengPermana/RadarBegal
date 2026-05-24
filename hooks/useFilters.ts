@@ -14,7 +14,6 @@ export function useFilters() {
   const lokasi = searchParams.get('lokasi') || 'Semua Lokasi';
   const status = searchParams.get('status') || 'Semua';
   const risiko = searchParams.get('risiko') || 'Semua';
-  const kategori = searchParams.get('kategori') || 'Semua';
   const id = searchParams.get('id');
 
   const setFilter = useCallback(
@@ -52,11 +51,6 @@ export function useFilters() {
           return false;
         }
 
-        // Kategori
-        if (kategori !== 'Semua' && item.kategori !== kategori) {
-          return false;
-        }
-
         // Risiko
         if (risiko !== 'Semua' && item.tingkat_risiko !== risiko) {
           return false;
@@ -77,11 +71,11 @@ export function useFilters() {
         return true;
       });
     },
-    [q, rentang, lokasi, status, risiko, kategori]
+    [q, rentang, lokasi, status, risiko]
   );
 
   return {
-    filters: { q, rentang, lokasi, status, risiko, kategori, id },
+    filters: { q, rentang, lokasi, status, risiko, id },
     setFilter,
     clearFilters,
     applyFilters,

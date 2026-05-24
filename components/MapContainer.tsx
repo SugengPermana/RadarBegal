@@ -30,7 +30,7 @@ export default function MapContainer({
   useEffect(() => {
     if (selectedBerita) {
       setCenter({ lat: selectedBerita.latitude, lng: selectedBerita.longitude });
-      setZoom(15); // Zoom in closer
+      setZoom(35); // Zoom in closer
     }
   }, [selectedBerita]);
 

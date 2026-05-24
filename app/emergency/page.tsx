@@ -197,7 +197,6 @@ export default function EmergencyPage() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

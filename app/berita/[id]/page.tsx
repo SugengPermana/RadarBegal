@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Clock, ChevronLeft, ShieldAlert, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
+import { MapPin, Clock, ChevronLeft, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useBerita } from "@/providers/BeritaProvider";
@@ -23,11 +23,11 @@ export default function BeritaDetailPage() {
   if (!berita) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-950 gap-4">
-        <ShieldAlert className="w-16 h-16 text-slate-700" />
+        <AlertCircle className="w-16 h-16 text-slate-700" />
         <h1 className="text-2xl font-bold text-slate-300">Berita Tidak Ditemukan</h1>
         <p className="text-slate-500">Berita dengan ID {beritaId} tidak tersedia.</p>
         <Link href="/berita" className="mt-4 bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-teal-500 transition-colors">
-          Kembali ke Daftar Berita
+          Kembali ke Halaman Berita
         </Link>
       </div>
     );
@@ -36,8 +36,8 @@ export default function BeritaDetailPage() {
   const riskBadgeClass = berita.tingkat_risiko === 'CRITICAL' 
     ? 'bg-red-500/10 text-red-500 border-red-500/30' 
     : berita.tingkat_risiko === 'ELEVATED' 
-    ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' 
-    : 'bg-teal-500/10 text-teal-500 border-teal-500/30';
+    ? 'bg-orange-500/10 text-orange-500 border-orange-500/30' 
+    : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
 
   return (
     <div className="flex-1 bg-slate-950 min-h-screen pt-20 md:pt-8">
@@ -46,18 +46,15 @@ export default function BeritaDetailPage() {
         {/* Back Navigation */}
         <Link href="/berita" className="inline-flex items-center gap-2 text-slate-400 hover:text-teal-400 transition-colors mb-8 text-sm font-medium">
           <ArrowLeft className="w-4 h-4" />
-          Kembali ke Daftar Berita
+          Kembali ke Halaman Berita
         </Link>
 
         {/* Hero Header */}
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase border ${riskBadgeClass}`}>
-              <ShieldAlert className="w-3.5 h-3.5" />
+              <AlertCircle className="w-3.5 h-3.5" />
               {berita.tingkat_risiko}
-            </span>
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase border border-slate-700 bg-slate-900 text-slate-300`}>
-              {berita.kategori}
             </span>
             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${berita.status_verifikasi === 'Terverifikasi Admin' ? 'text-teal-500' : 'text-amber-500'}`}>
               {berita.status_verifikasi === 'Terverifikasi Admin' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
@@ -94,7 +91,7 @@ export default function BeritaDetailPage() {
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
             <div className="text-slate-500 text-[10px] font-bold tracking-wider uppercase mb-2">ID Berita</div>
-            <div className="text-slate-200 font-semibold">#{berita.id}</div>
+            <div className="text-slate-200 font-semibold">{berita.id}</div>
           </div>
         </div>
 
@@ -105,14 +102,14 @@ export default function BeritaDetailPage() {
             className="flex-1 bg-teal-600 text-white py-4 rounded-xl hover:bg-teal-500 transition-colors font-bold flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(13,148,136,0.3)] text-lg"
           >
             <MapPin className="w-5 h-5" />
-            Lihat di Peta
+            Lihat di Peta Maps
           </Link>
           <Link
-            href="/history"
+            href="/kasus"
             className="flex-1 bg-slate-900 border border-slate-700 text-slate-300 py-4 rounded-xl hover:bg-slate-800 hover:text-slate-100 transition-colors font-bold flex items-center justify-center gap-3 text-lg"
           >
             <ChevronLeft className="w-5 h-5" />
-            Riwayat Insiden
+            Riwayat Kasus
           </Link>
         </div>
       </div>

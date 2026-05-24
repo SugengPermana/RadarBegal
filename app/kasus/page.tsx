@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { ChevronRight, Search, Settings2, ShieldCheck, Siren, Navigation, AlertTriangle, X, MapPin, Share2 } from "lucide-react";
+import { useState, Suspense, useEffect } from "react";
+import { ChevronRight, Search, Settings2, ShieldCheck, Siren, Navigation, AlertTriangle, X, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBerita } from "@/providers/BeritaProvider";
 import { useFilters } from "@/hooks/useFilters";
 import { BeritaBegal } from "@/types/begal";
 
-export default function HistoryPage() {
+export default function KasusPage() {
   return (
     <Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="text-slate-500 animate-pulse">Loading...</div></div>}>
-      <HistoryContent />
+      <KasusContent />
     </Suspense>
   );
 }
 
-function HistoryContent() {
+function KasusContent() {
   const router = useRouter();
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<BeritaBegal | null>(null);
@@ -28,14 +28,24 @@ function HistoryContent() {
 
   const toggleFilterPanel = () => setShowFilterPanel(!showFilterPanel);
 
+  const [searchInput, setSearchInput] = useState(filters.q || "");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilter("q", searchInput);
+    }, 500);
+  
+    return () => clearTimeout(timer);
+  }, [searchInput, setFilter]);
+
   return (
     <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col relative z-10 pt-20">
       
       {/* Header & Search/Filter Bar */}
       <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-100 mb-2 tracking-tight">Incident Logs</h1>
-          <p className="text-slate-400 text-lg">Historical record of all reported events in monitored zones.</p>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-100 mb-2 tracking-tight">Kasus Laporan</h1>
+          <p className="text-slate-400 text-lg">Data kasus laporan berdasarkan berita</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto relative">
@@ -45,13 +55,16 @@ function HistoryContent() {
             <input 
               type="text" 
               placeholder="Search incidents..." 
-              value={filters.q}
-              onChange={(e) => setFilter("q", e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="w-full bg-slate-900 border border-slate-800 text-slate-200 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all placeholder:text-slate-500 shadow-sm"
             />
-            {filters.q && (
+            {searchInput && (
               <button 
-                onClick={() => setFilter("q", "")}
+                onClick={() => {
+                   setSearchInput("");
+                   setFilter("q", "");
+                }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
               >
                 <X className="w-4 h-4" />
@@ -90,25 +103,8 @@ function HistoryContent() {
                 >
                   <option>Semua</option>
                   <option>CRITICAL</option>
-                  <option>ELEVATED</option>
-                  <option>WATCH</option>
-                </select>
-              </div>
-
-              {/* Kategori */}
-              <div>
-                <label className="block text-xs font-bold tracking-wider text-slate-500 mb-2 uppercase">Kategori Kriminal</label>
-                <select 
-                  value={filters.kategori}
-                  onChange={(e) => setFilter('kategori', e.target.value)}
-                  suppressHydrationWarning 
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-lg px-3 py-2 border-r-[8px] border-r-transparent focus:outline-none focus:border-teal-500 text-sm"
-                >
-                  <option>Semua</option>
-                  <option>Begal</option>
-                  <option>Jambret</option>
-                  <option>Suspicious</option>
-                  <option>Kriminal</option>
+                  <option>WARNING</option>
+                  <option>CAUTION</option>
                 </select>
               </div>
 
@@ -138,8 +134,8 @@ function HistoryContent() {
                   className="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-lg px-3 py-2 border-r-[8px] border-r-transparent focus:outline-none focus:border-teal-500 text-sm"
                 >
                   <option>Semua</option>
-                  <option>Terverifikasi Admin</option>
-                  <option>Menunggu Validasi</option>
+                  <option>Terverifikasi</option>
+                  <option>Belum Terverifikasi</option>
                 </select>
               </div>
 
@@ -151,14 +147,14 @@ function HistoryContent() {
       {/* Active Filters Summary */}
       <div className="flex flex-wrap gap-3 mb-8">
         <button onClick={clearFilters} className="text-teal-500 hover:text-teal-400 text-xs font-bold tracking-wider px-2 py-1 transition-colors underline underline-offset-4 decoration-teal-500/30">
-          CLEAR ALL FILTERS
+          Refresh Filters
         </button>
       </div>
 
       {/* Data List */}
       <div className="space-y-4">
         {isLoading ? (
-          <div className="text-center py-12 text-slate-500">Loading history...</div>
+          <div className="text-center py-12 text-slate-500">Loading Kasus Laporan...</div>
         ) : filteredIncidents.length === 0 ? (
           <div className="text-center py-12 text-slate-500">Tidak ada insiden yang sesuai dengan filter atau pencarian.</div>
         ) : filteredIncidents.map((incident) => (

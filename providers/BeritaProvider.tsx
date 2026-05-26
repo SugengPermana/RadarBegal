@@ -1,8 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 import { BeritaBegal } from '@/types/begal';
+import { mapNewsToBerita, NewsRow } from '@/lib/news-mapper';
 
 interface BeritaContextType {
   beritaData: BeritaBegal[];
@@ -28,20 +29,18 @@ export const BeritaProvider = ({ children }: { children: React.ReactNode }) => {
 
     const fetchBerita = async () => {
       try {
-        const { data, error } = await supabase
-          .from('berita_begal')
+        const { data, error: fetchError } = await supabase
+          .from('news')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('published_at', { ascending: false });
 
-        if (error) {
-          throw error;
-        }
+        if (fetchError) throw fetchError;
 
         if (mounted && data) {
-          setBeritaData(data as BeritaBegal[]);
+          setBeritaData((data as NewsRow[]).map(mapNewsToBerita));
         }
-      } catch (err: any) {
-        if (mounted) setError(err);
+      } catch (err) {
+        if (mounted) setError(err as Error);
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -50,22 +49,22 @@ export const BeritaProvider = ({ children }: { children: React.ReactNode }) => {
     fetchBerita();
 
     const channel = supabase
-      .channel('public:berita_begal')
+      .channel('public:news')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'berita_begal' },
+        { event: '*', schema: 'public', table: 'news' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setBeritaData((prev) => [payload.new as BeritaBegal, ...prev]);
+            const item = mapNewsToBerita(payload.new as NewsRow);
+            setBeritaData((prev) => [item, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
+            const item = mapNewsToBerita(payload.new as NewsRow);
             setBeritaData((prev) =>
-              prev.map((item) =>
-                item.id === payload.new.id ? (payload.new as BeritaBegal) : item
-              )
+              prev.map((row) => (row.id === item.id ? item : row))
             );
           } else if (payload.eventType === 'DELETE') {
             setBeritaData((prev) =>
-              prev.filter((item) => item.id !== payload.old.id)
+              prev.filter((row) => row.id !== (payload.old as NewsRow).id)
             );
           }
         }

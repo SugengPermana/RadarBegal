@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import { BeritaBegal } from '@/types/begal';
+import { normalizeRiskLevel } from '@/lib/risk';
 
 export function useFilters() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export function useFilters() {
         }
 
         // Risiko
-        if (risiko !== 'Semua' && item.tingkat_risiko !== risiko) {
+        if (risiko !== 'Semua' && normalizeRiskLevel(item.tingkat_risiko) !== risiko) {
           return false;
         }
 

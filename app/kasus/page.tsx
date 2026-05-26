@@ -163,7 +163,7 @@ function KasusContent() {
             onClick={() => setSelectedIncident(incident)}
             className="bg-slate-900 border border-slate-800 rounded-2xl hover:bg-slate-800/80 transition-all cursor-pointer group relative overflow-hidden flex flex-col md:grid md:grid-cols-12 md:gap-6 md:items-center p-5 md:px-8 md:py-6 shadow-sm"
           >
-            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${incident.tingkat_risiko === "CRITICAL" ? "bg-red-500" : incident.tingkat_risiko === "ELEVATED" ? "bg-amber-500" : "bg-teal-500"}`}></div>
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${incident.tingkat_risiko === "CRITICAL" ? "bg-red-500" : incident.tingkat_risiko === "WARNING" ? "bg-amber-500" : "bg-teal-500"}`}></div>
             
             <div className="col-span-2 flex flex-col mb-4 md:mb-0">
               <span className="text-slate-200 font-semibold text-lg md:text-base">{new Date(incident.created_at).toLocaleDateString()}</span>
@@ -171,10 +171,10 @@ function KasusContent() {
             </div>
             
             <div className="col-span-4 mb-4 md:mb-0 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${incident.tingkat_risiko === "CRITICAL" ? "bg-red-500/10 text-red-500 border-red-500/20" : incident.tingkat_risiko === "ELEVATED" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-teal-500/10 text-teal-500 border-teal-500/20"}`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${incident.tingkat_risiko === "CRITICAL" ? "bg-red-500/10 text-red-500 border-red-500/20" : incident.tingkat_risiko === "WARNING" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-teal-500/10 text-teal-500 border-teal-500/20"}`}>
                 {incident.tingkat_risiko === "CRITICAL" && <Siren className="w-6 h-6" />}
-                {incident.tingkat_risiko === "ELEVATED" && <AlertTriangle className="w-6 h-6" />}
-                {incident.tingkat_risiko === "WATCH" && <ShieldCheck className="w-6 h-6" />}
+                {incident.tingkat_risiko === "WARNING" && <AlertTriangle className="w-6 h-6" />}
+                {incident.tingkat_risiko === "" && <ShieldCheck className="w-6 h-6" />}
               </div>
               <div>
                 <div className="font-bold text-lg text-slate-100">{incident.judul}</div>
@@ -191,10 +191,10 @@ function KasusContent() {
             </div>
             
             <div className="col-span-2 mb-4 md:mb-0 flex items-center">
-              <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-xs font-bold tracking-wider ${incident.tingkat_risiko === "CRITICAL" ? "border-red-500/30 bg-red-500/10 text-red-500" : incident.tingkat_risiko === "ELEVATED" ? "border-amber-500/30 bg-amber-500/10 text-amber-500" : "border-teal-500/30 bg-teal-500/10 text-teal-500"}`}>
+              <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-xs font-bold tracking-wider ${incident.tingkat_risiko === "CRITICAL" ? "border-red-500/30 bg-red-500/10 text-red-500" : incident.tingkat_risiko === "WARNING" ? "border-amber-500/30 bg-amber-500/10 text-amber-500" : "border-teal-500/30 bg-teal-500/10 text-teal-500"}`}>
                 {incident.tingkat_risiko === "CRITICAL" && <span className="w-2 h-2 rounded-full bg-red-500 blur-[1px] animate-pulse"></span>}
-                {incident.tingkat_risiko === "ELEVATED" && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
-                {incident.tingkat_risiko === "WATCH" && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
+                {incident.tingkat_risiko === "WARNING" && <span className="w-2 h-2 rounded-full bg-amber-500"></span>}
+                {incident.tingkat_risiko === "" && <span className="w-2 h-2 rounded-full bg-teal-500"></span>}
                 {incident.tingkat_risiko}
               </span>
             </div>
@@ -215,7 +215,7 @@ function KasusContent() {
             <div className="p-6 border-b border-slate-800 flex justify-between items-start shrink-0">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-950 text-xs font-bold tracking-wider border ${selectedIncident.tingkat_risiko === 'CRITICAL' ? 'text-red-500 border-red-500/30' : selectedIncident.tingkat_risiko === 'ELEVATED' ? 'text-amber-500 border-amber-500/30' : 'text-teal-500 border-teal-500/30'}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-950 text-xs font-bold tracking-wider border ${selectedIncident.tingkat_risiko === 'CRITICAL' ? 'text-red-500 border-red-500/30' : selectedIncident.tingkat_risiko === 'WARNING' ? 'text-amber-500 border-amber-500/30' : 'text-teal-500 border-teal-500/30'}`}>
                     {selectedIncident.tingkat_risiko} RISK
                   </span>
                   <span className="text-slate-500 text-sm font-medium">ID: {selectedIncident.id}</span>

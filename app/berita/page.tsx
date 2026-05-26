@@ -80,8 +80,8 @@ function BeritaContent() {
               <select value={filters.risiko} onChange={(e) => setFilter('risiko', e.target.value)} suppressHydrationWarning className="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-lg px-3 py-2 border-r-[8px] border-r-transparent focus:outline-none focus:border-teal-500 text-sm">
                 <option>Semua</option>
                 <option>CRITICAL</option>
-                <option>ELEVATED</option>
-                <option>WATCH</option>
+                <option>WARNING</option>
+                <option>CAUTION</option>
               </select>
             </div>
             <div>
@@ -119,7 +119,7 @@ function BeritaContent() {
 
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-10 flex flex-col items-start">
                 <div className="flex items-center gap-4 mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${heroBerita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500/20 text-red-400 border-red-500/30' : heroBerita.tingkat_risiko === 'ELEVATED' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${heroBerita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500/20 text-red-400 border-red-500/30' : heroBerita.tingkat_risiko === 'WARNING' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'}`}>
                     {heroBerita.kategori} — {heroBerita.tingkat_risiko}
                   </span>
                   <span className="text-slate-300 text-sm font-medium flex items-center gap-1">
@@ -135,8 +135,8 @@ function BeritaContent() {
                 </p>
                 <div className="flex items-center gap-4 mb-4">
                   <span className="flex items-center gap-1 text-slate-400 text-sm"><MapPin className="w-4 h-4" /> {heroBerita.lokasi}</span>
-                  <span className={`flex items-center gap-1 text-sm font-semibold ${heroBerita.status_verifikasi === 'Terverifikasi Admin' ? 'text-teal-500' : 'text-amber-500'}`}>
-                    {heroBerita.status_verifikasi === 'Terverifikasi Admin' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                  <span className={`flex items-center gap-1 text-sm font-semibold ${heroBerita.status_verifikasi === 'Terverifikasi' ? 'text-teal-500' : 'text-amber-500'}`}>
+                    {heroBerita.status_verifikasi === 'Terverifikasi' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                     {heroBerita.status_verifikasi}
                   </span>
                 </div>
@@ -152,9 +152,9 @@ function BeritaContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {restBerita.map((berita) => (
               <div key={berita.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col hover:bg-slate-800/80 transition-colors shadow-sm relative overflow-hidden group">
-                <div className={`absolute top-0 left-0 w-full h-1 ${berita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500' : berita.tingkat_risiko === 'ELEVATED' ? 'bg-orange-500' : 'bg-yellow-500'}`}></div>
+                <div className={`absolute top-0 left-0 w-full h-1 ${berita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500' : berita.tingkat_risiko === 'WARNING' ? 'bg-orange-500' : 'bg-yellow-500'}`}></div>
                 <div className="flex justify-between items-center mb-4">
-                  <span className={`flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase ${berita.tingkat_risiko === 'CRITICAL' ? 'text-red-500' : berita.tingkat_risiko === 'ELEVATED' ? 'text-orange-500' : 'text-yellow-500'}`}>
+                  <span className={`flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase ${berita.tingkat_risiko === 'CRITICAL' ? 'text-red-500' : berita.tingkat_risiko === 'WARNING' ? 'text-orange-500' : 'text-yellow-500'}`}>
                     <ShieldAlert className="w-4 h-4" /> {berita.kategori}
                   </span>
                   <span className="text-slate-500 text-xs font-medium flex items-center gap-1">
@@ -171,8 +171,8 @@ function BeritaContent() {
                   {berita.lokasi}
                 </div>
                 <div className="flex items-center justify-between border-t border-slate-800 pt-4">
-                  <div className={`flex items-center gap-1.5 text-xs font-semibold ${berita.status_verifikasi === 'Terverifikasi Admin' ? 'text-teal-500' : 'text-amber-500'}`}>
-                    {berita.status_verifikasi === 'Terverifikasi Admin' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                  <div className={`flex items-center gap-1.5 text-xs font-semibold ${berita.status_verifikasi === 'Terverifikasi' ? 'text-teal-500' : 'text-amber-500'}`}>
+                    {berita.status_verifikasi === 'Terverifikasi' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
                     {berita.status_verifikasi}
                   </div>
                 </div>

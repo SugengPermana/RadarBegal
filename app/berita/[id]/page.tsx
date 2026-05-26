@@ -4,6 +4,8 @@ import { MapPin, Clock, ChevronLeft, CheckCircle2, AlertCircle, ArrowLeft } from
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useBerita } from "@/providers/BeritaProvider";
+import { formatTanggalIndonesia, formatWaktuIndonesia } from "@/lib/format";
+import { normalizeRiskLevel, riskLabel } from "@/lib/risk";
 
 export default function BeritaDetailPage() {
   const params = useParams();
@@ -35,7 +37,7 @@ export default function BeritaDetailPage() {
 
   const riskBadgeClass = berita.tingkat_risiko === 'CRITICAL' 
     ? 'bg-red-500/10 text-red-500 border-red-500/30' 
-    : berita.tingkat_risiko === 'ELEVATED' 
+    : berita.tingkat_risiko === 'WARNING' 
     ? 'bg-orange-500/10 text-orange-500 border-orange-500/30' 
     : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
 
@@ -54,16 +56,21 @@ export default function BeritaDetailPage() {
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase border ${riskBadgeClass}`}>
               <AlertCircle className="w-3.5 h-3.5" />
-              {berita.tingkat_risiko}
+              {riskLabel(berita.tingkat_risiko)} ({normalizeRiskLevel(berita.tingkat_risiko)})
             </span>
-            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${berita.status_verifikasi === 'Terverifikasi Admin' ? 'text-teal-500' : 'text-amber-500'}`}>
-              {berita.status_verifikasi === 'Terverifikasi Admin' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${berita.status_verifikasi === 'Terverifikasi' ? 'text-teal-500' : 'text-amber-500'}`}>
+              {berita.status_verifikasi === 'Terverifikasi' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
               {berita.status_verifikasi}
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black text-slate-100 leading-tight mb-4">{berita.judul}</h1>
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
-            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {new Date(berita.created_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}</span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4" />
+              {formatTanggalIndonesia(berita.incident_at || berita.published_at || berita.created_at)}
+              {' · '}
+              {formatWaktuIndonesia(berita.incident_at || berita.published_at || berita.created_at)}
+            </span>
             <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {berita.lokasi}</span>
           </div>
         </div>

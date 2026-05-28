@@ -23,6 +23,7 @@ function BeritaContent() {
   const heroBerita = filteredBerita[0];
   const restBerita = filteredBerita.slice(1);
   const [searchInput, setSearchInput] = useState(filters.q || "");
+  const [displayCount, setDisplayCount] = useState(5);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -164,7 +165,7 @@ function BeritaContent() {
 
           {/* News Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {restBerita.map((berita) => (
+            {restBerita.slice(0, displayCount).map((berita) => (
               <div key={berita.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col hover:bg-slate-800/80 transition-colors shadow-sm relative overflow-hidden group">
                 <div className={`absolute top-0 left-0 w-full h-1 ${berita.tingkat_risiko === 'CRITICAL' ? 'bg-red-500' : berita.tingkat_risiko === 'WARNING' ? 'bg-orange-500' : 'bg-yellow-500'}`}></div>
                 <div className="flex justify-between items-center mb-4">
@@ -215,6 +216,19 @@ function BeritaContent() {
               </div>
             ))}
           </div>
+
+          {/* Load More Button */}
+          {displayCount < restBerita.length && (
+            <div className="flex justify-center mt-8">
+              <button
+                type="button"
+                onClick={() => setDisplayCount((prev) => prev + 5)}
+                className="bg-slate-900 border border-slate-800 hover:border-teal-500 hover:bg-slate-800 text-slate-300 hover:text-teal-400 font-bold px-8 py-3 rounded-xl transition-colors"
+              >
+                Muat Lebih Banyak ({restBerita.length - displayCount} tersisa)
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

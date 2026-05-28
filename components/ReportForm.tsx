@@ -76,6 +76,13 @@ export function ReportForm() {
       return;
     }
 
+    if (file.size > 5 * 1024 * 1024) {
+      setToast({ message: 'Ukuran foto maksimal 5MB', type: 'error' });
+      setImageFile(null);
+      setImagePreview(null);
+      return;
+    }
+
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
     }
@@ -92,14 +99,14 @@ export function ReportForm() {
         cacheControl: '3600',
         upsert: false,
       }),
-      25_000,
-      'Upload foto timeout'
+      30_000,
+      'Upload foto timeout (lebih dari 30 detik)'
     );
 
     const { error } = uploadRes;
     if (error) {
       console.error('Upload error:', error);
-      return null;
+      throw new Error(`Gagal mengunggah foto: ${error.message || 'Bucket not found'}`);
     }
     const { data } = supabase.storage.from('report-images').getPublicUrl(path);
     return data.publicUrl;
@@ -116,31 +123,59 @@ export function ReportForm() {
 
     setIsSubmitting(true);
     try {
+      // Cek batas maksimal 2 laporan per hari
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const { count: todayCount, error: countError } = await supabase
+        .from('reports')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', todayStart.toISOString());
+
+      if (countError) {
+        throw new Error('Gagal memeriksa batas laporan harian: ' + countError.message);
+      }
+
+      if ((todayCount ?? 0) >= 2) {
+        setToast({ message: 'Anda sudah mencapai batas maksimal 2 laporan per hari.', type: 'error' });
+        setIsSubmitting(false);
+        return;
+      }
+
       let imageUrl: string | null = null;
       if (imageFile) {
         imageUrl = await uploadImage(imageFile);
       }
 
+      const payload = {
+        description,
+        incident_date: incidentDate,
+        incident_time: incidentTime,
+        location_name: locationName,
+        latitude: coordinates.lat,
+        longitude: coordinates.lng,
+        image_url: imageUrl,
+        user_id: user.id,
+      };
+
+      console.log('Sending payload:', payload);
+
       const insertRes = await withTimeout(
         (async () => {
-          return await supabase.from('reports').insert({
-            description,
-            incident_date: incidentDate,
-            incident_time: incidentTime,
-            location_name: locationName,
-            latitude: coordinates.lat,
-            longitude: coordinates.lng,
-            image_url: imageUrl,
-            user_id: user.id,
-          });
+          return await supabase.from('reports').insert(payload).select();
         })(),
-        25_000,
+        30_000,
         'Kirim laporan timeout'
       );
 
-      const { error } = insertRes;
+      const { data, error } = insertRes;
 
-      if (error) throw error;
+      console.log('Insert Response Data:', data);
+      console.log('Insert Error:', error);
+
+      if (error) {
+        throw new Error(error.message || 'Terjadi kesalahan saat menyimpan laporan');
+      }
 
       setToast({ message: 'Laporan berhasil dikirim', type: 'success' });
       setDescription('');
@@ -152,9 +187,9 @@ export function ReportForm() {
       setImageFile(null);
       setImagePreview(null);
       if (fileRef.current) fileRef.current.value = '';
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setToast({ message: 'Gagal mengirim laporan. Coba lagi.', type: 'error' });
+      setToast({ message: err.message || 'Gagal mengirim laporan. Coba lagi.', type: 'error' });
     } finally {
       setIsSubmitting(false);
     }

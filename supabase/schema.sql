@@ -69,12 +69,36 @@ CREATE TABLE public.reports (
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE emergency (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    name TEXT NOT NULL,
+    category TEXT NOT NULL
+        CHECK (category IN ('POLICE', 'HOSPITAL')),
+
+    branch_name TEXT,
+    phone_number TEXT NOT NULL,
+
+    address TEXT NOT NULL,
+
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+
+    image_url TEXT,
+
+    is_active BOOLEAN DEFAULT true,
+
+    created_at TIMESTAMP WITH TIME ZONE
+        DEFAULT timezone('utc', now()) NOT NULL
+);
+
 -- =========================================
 -- ENABLE ROW LEVEL SECURITY
 -- =========================================
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.news ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.emergency ENABLE ROW LEVEL SECURITY;
 
 -- =========================================
 -- PUBLIC READ POLICY (NEWS)
@@ -89,10 +113,12 @@ USING (true);
 -- PUBLIC INSERT POLICY (REPORTS)
 -- semua user bisa kirim laporan
 -- =========================================
-CREATE POLICY "Public insert access for reports"
+
+CREATE POLICY "Users insert own reports"
 ON public.reports
 FOR INSERT
-WITH CHECK (true);
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
 
 -- =========================================
 -- USER READ OWN REPORTS
@@ -109,6 +135,44 @@ CREATE POLICY "Users can update own reports"
 ON public.reports
 FOR UPDATE
 USING (auth.uid() = user_id);
+
+-- =========================================
+-- ADMIN DELETE REPORTS
+-- =========================================
+CREATE POLICY "Admins can delete reports"
+ON public.reports
+FOR DELETE
+USING (
+    EXISTS (
+        SELECT 1 FROM public.users
+        WHERE users.id = auth.uid() AND users.role = 'admin'
+    )
+);
+
+-- =========================================
+-- USER DELETE OWN REPORTS
+-- =========================================
+CREATE POLICY "Users can delete own reports"
+ON public.reports
+FOR DELETE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can read all users"
+ON public.users
+FOR SELECT
+USING (
+    EXISTS (
+        SELECT 1
+        FROM public.users u
+        WHERE u.id = auth.uid()
+        AND u.role = 'admin'
+    )
+);
+
+CREATE POLICY "Public read emergency"
+ON public.emergency
+FOR SELECT
+USING (true);
 
 CREATE POLICY "Users can read own profile"
 ON public.users
@@ -194,3 +258,46 @@ VALUES
     'https://images.unsplash.com/photo-1517022812141-23620dba5c23',
     'Belum Terverifikasi'
 );
+
+-- =========================================
+-- CREATE STORAGE BUCKET FOR REPORT IMAGES
+-- =========================================
+-- Ensure the bucket exists
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('report-images', 'report-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow public read access to the bucket
+CREATE POLICY "Public Access"
+ON storage.objects FOR SELECT
+USING ( bucket_id = 'report-images' );
+
+-- Allow authenticated users to insert files
+CREATE POLICY "Auth Insert"
+ON storage.objects FOR INSERT
+WITH CHECK ( bucket_id = 'report-images' AND auth.role() = 'authenticated' );
+
+-- =========================================
+-- DUMMY DATA EMERGENCY (RS & POLISI JABODETABEK)
+-- =========================================
+INSERT INTO emergency (name, category, branch_name, phone_number, address, latitude, longitude, is_active)
+VALUES
+-- Rumah Sakit
+('RSUP Fatmawati', 'HOSPITAL', 'RS Umum Pusat', '(021) 7501524', 'Jl. RS Fatmawati Raya No.4, Cilandak, Jakarta Selatan', -6.2927, 106.7934, true),
+('RSUD Tarakan', 'HOSPITAL', 'RS Umum Daerah', '(021) 3842434', 'Jl. Kyai Caringin No.7, Cideng, Jakarta Pusat', -6.1687, 106.8114, true),
+('RS Husada', 'HOSPITAL', 'RS Swasta', '(021) 6260108', 'Jl. Mangga Besar No.137-139, Tamansari, Jakarta Barat', -6.1505, 106.8265, true),
+('RSUP Persahabatan', 'HOSPITAL', 'RS Umum Pusat', '(021) 4891708', 'Jl. Persahabatan Raya No.1, Rawamangun, Jakarta Timur', -6.1940, 106.8876, true),
+('RS Koja', 'HOSPITAL', 'RS Umum Daerah', '(021) 43909988', 'Jl. Deli No.4, Tanjung Priok, Jakarta Utara', -6.1167, 106.8946, true),
+('RSUD Cengkareng', 'HOSPITAL', 'RS Umum Daerah', '(021) 54396158', 'Jl. Bumi Cengkareng Indah No.1, Cengkareng, Jakarta Barat', -6.1466, 106.7278, true),
+('RS Cipto Mangunkusumo', 'HOSPITAL', 'RS Umum Pusat Nasional', '(021) 3918301', 'Jl. Diponegoro No.71, Salemba, Jakarta Pusat', -6.1972, 106.8456, true),
+('RS Pelni', 'HOSPITAL', 'RS Swasta', '(021) 5483818', 'Jl. Aipda K.S. Tubun No.92-94, Slipi, Jakarta Barat', -6.1876, 106.7986, true),
+
+-- Kantor Polisi
+('Polda Metro Jaya', 'POLICE', 'Markas Besar', '(021) 5253131', 'Jl. Jend. Sudirman No.55, Kebayoran Baru, Jakarta Selatan', -6.2220, 106.8020, true),
+('Polres Metro Jakarta Pusat', 'POLICE', 'Polres', '(021) 3441216', 'Jl. Kramat Raya No.50, Senen, Jakarta Pusat', -6.1830, 106.8440, true),
+('Polres Metro Jakarta Selatan', 'POLICE', 'Polres', '(021) 7267155', 'Jl. Wijaya II No.62, Kebayoran Baru, Jakarta Selatan', -6.2413, 106.7963, true),
+('Polres Metro Jakarta Barat', 'POLICE', 'Polres', '(021) 5603405', 'Jl. S. Parman Kav.94, Slipi, Jakarta Barat', -6.1776, 106.7922, true),
+('Polres Metro Jakarta Timur', 'POLICE', 'Polres', '(021) 8192111', 'Jl. Matraman Raya No.259, Jatinegara, Jakarta Timur', -6.2140, 106.8631, true),
+('Polres Metro Jakarta Utara', 'POLICE', 'Polres', '(021) 43931001', 'Jl. Yos Sudarso No.1, Tanjung Priok, Jakarta Utara', -6.1250, 106.8700, true),
+('Polres Metro Tangerang Kota', 'POLICE', 'Polres', '(021) 55766413', 'Jl. Perintis Kemerdekaan I No.1, Tangerang', -6.1781, 106.6319, true),
+('Polres Metro Bekasi Kota', 'POLICE', 'Polres', '(021) 8801086', 'Jl. Pramuka No.79, Marga Jaya, Bekasi', -6.2383, 106.9756, true);

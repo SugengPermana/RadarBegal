@@ -14,6 +14,7 @@ import { riskColors } from "@/lib/risk";
 import { distanceMeters } from "@/lib/geo";
 import { MapNewsPopup } from "@/components/MapNewsPopup";
 import { MapPlacePopup } from "@/components/MapPlacePopup";
+import { supabase } from "@/lib/supabase/client";
 
 interface MapContainerProps {
   beritaList: BeritaBegal[];
@@ -56,6 +57,16 @@ function MapFlyController({
   return null;
 }
 
+type PlaceMarker = {
+  placeId: string;
+  name: string;
+  address?: string | null;
+  rating?: number | null;
+  openNow?: boolean | null;
+  lat: number;
+  lng: number;
+};
+
 function MapInner({
   beritaList,
   selectedBerita,
@@ -65,16 +76,6 @@ function MapInner({
   flyToTarget,
 }: MapContainerProps) {
   const map = useMap();
-
-  type PlaceMarker = {
-    placeId: string;
-    name: string;
-    address?: string | null;
-    rating?: number | null;
-    openNow?: boolean | null;
-    lat: number;
-    lng: number;
-  };
 
   const mode = poiMode ?? "none";
   const locationKey = userLocation
@@ -86,7 +87,6 @@ function MapInner({
   const [selectedPlace, setSelectedPlace] = useState<PlaceMarker | null>(null);
 
   const placesFetchedKeyRef = useRef<string | null>(null);
-  const detailsCacheRef = useRef<Record<string, PlaceMarker>>({});
   const lastFlyRef = useRef<string>("");
   const [placesLoading, setPlacesLoading] = useState(false);
 
@@ -95,6 +95,7 @@ function MapInner({
     setSelectedPlace(null);
   }, [mode, locationKey]);
 
+  // Fetch dari Supabase emergency table
   useEffect(() => {
     if (!userLocation) return;
     if (mode === "none") return;
@@ -104,74 +105,63 @@ function MapInner({
 
     if (placesFetchedKeyRef.current === fetchKey) return;
 
-    const googleObj = (window as any)?.google;
-    const PlacesService = googleObj?.maps?.places?.PlacesService;
-    if (!PlacesService || !map) return;
-
     let cancelled = false;
     placesFetchedKeyRef.current = fetchKey;
     setPlacesLoading(true);
     setPolicePlaces([]);
     setHospitalPlaces([]);
 
-    const service = new PlacesService(map);
-
-    const nearbySearch = (type: "police" | "hospital") =>
-      new Promise<PlaceMarker[]>((resolve) => {
-        service.nearbySearch(
-          {
-            location: { lat: userLocation.lat, lng: userLocation.lng },
-            radius: type === "police" ? 10000 : 5000,
-            type: type,
-            keyword: type === "police" ? "kantor polisi" : "rumah sakit",
-          } as any,
-          (results: any[], status: string) => {
-            if (cancelled) return;
-            if (status !== "OK" || !results) return resolve([]);
-
-            const mapped = results
-              .map((r: any) => {
-                const g = r?.geometry?.location;
-                const lat =
-                  typeof g?.lat === "function"
-                    ? g.lat()
-                    : (g?.lat as number | undefined);
-                const lng =
-                  typeof g?.lng === "function"
-                    ? g.lng()
-                    : (g?.lng as number | undefined);
-
-                if (!lat || !lng) return null;
-
-                return {
-                  placeId: r.place_id,
-                  name: r.name,
-                  address: r.vicinity || r.formatted_address || null,
-                  rating: r.rating ?? null,
-                  openNow: r?.opening_hours?.open_now ?? null,
-                  lat,
-                  lng,
-                } satisfies PlaceMarker;
-              })
-              .filter(Boolean) as PlaceMarker[];
-
-            // Ambil secukupnya biar marker tidak berlebihan.
-            resolve(mapped.slice(0, 8));
-          },
-        );
-      });
-
     (async () => {
       try {
-        const [pol, hos] = await Promise.all([
-          nearbySearch("police"),
-          nearbySearch("hospital"),
-        ]);
-        if (cancelled) return;
-        setPolicePlaces(pol);
-        setHospitalPlaces(hos);
+        // Fetch both categories from Supabase
+        const { data, error } = await supabase
+          .from("emergency")
+          .select("*")
+          .eq("is_active", true);
+
+        if (cancelled || error || !data) {
+          if (!cancelled) setPlacesLoading(false);
+          return;
+        }
+
+        const toMarker = (d: any): PlaceMarker => ({
+          placeId: `emergency-${d.id}`,
+          name: d.name,
+          address: d.address,
+          rating: null,
+          openNow: null,
+          lat: d.latitude,
+          lng: d.longitude,
+        });
+
+        // Sort by distance and take closest 8
+        const sortByDist = (items: any[]) =>
+          items
+            .map((d) => ({
+              ...d,
+              _dist: distanceMeters(
+                userLocation.lat,
+                userLocation.lng,
+                d.latitude,
+                d.longitude
+              ),
+            }))
+            .sort((a, b) => a._dist - b._dist)
+            .slice(0, 8);
+
+        const policeData = sortByDist(
+          data.filter((d) => d.category === "POLICE")
+        ).map(toMarker);
+        const hospitalData = sortByDist(
+          data.filter((d) => d.category === "HOSPITAL")
+        ).map(toMarker);
+
+        if (!cancelled) {
+          setPolicePlaces(policeData);
+          setHospitalPlaces(hospitalData);
+        }
       } catch {
-        // ignore, handled by empty arrays
+        // ignore
       } finally {
         if (!cancelled) setPlacesLoading(false);
       }
@@ -182,6 +172,7 @@ function MapInner({
     };
   }, [map, userLocation?.lat, userLocation?.lng, locationKey, mode]);
 
+  // Fly to nearest
   useEffect(() => {
     if (!userLocation) return;
     if (mode === "none") return;
@@ -196,12 +187,12 @@ function MapInner({
           userLocation.lat,
           userLocation.lng,
           curr.lat,
-          curr.lng,
+          curr.lng
         );
         if (!best || dCurr < best.dist) return { place: curr, dist: dCurr };
         return best;
       },
-      null as null | { place: PlaceMarker; dist: number },
+      null as null | { place: PlaceMarker; dist: number }
     );
 
     if (!nearest?.place) return;
@@ -221,82 +212,13 @@ function MapInner({
     map,
   ]);
 
-  const handlePlaceClick = async (place: PlaceMarker) => {
+  const handlePlaceClick = (place: PlaceMarker) => {
     setSelectedPlace(place);
-
-    if (detailsCacheRef.current[place.placeId]) {
-      setSelectedPlace(detailsCacheRef.current[place.placeId]);
-      return;
-    }
-
-    // Jika opening status sudah ada, tidak perlu request lagi.
-    if (typeof place.openNow === "boolean") {
-      detailsCacheRef.current[place.placeId] = place;
-      return;
-    }
-
-    const googleObj = (window as any)?.google;
-    const PlacesService = googleObj?.maps?.places?.PlacesService;
-    if (!PlacesService || !map) return;
-
-    let cancelled = false;
-    const service = new PlacesService(map);
-
-    try {
-      const detailed = await new Promise<PlaceMarker | null>((resolve) => {
-        service.getDetails(
-          {
-            placeId: place.placeId,
-            fields: [
-              "place_id",
-              "name",
-              "formatted_address",
-              "rating",
-              "opening_hours",
-              "geometry",
-            ],
-          } as any,
-          (res: any, status: string) => {
-            if (cancelled) return resolve(null);
-            if (status !== "OK" || !res) return resolve(null);
-
-            const g = res?.geometry?.location;
-            const lat =
-              typeof g?.lat === "function"
-                ? g.lat()
-                : (g?.lat as number | undefined);
-            const lng =
-              typeof g?.lng === "function"
-                ? g.lng()
-                : (g?.lng as number | undefined);
-
-            const opened = res?.opening_hours?.open_now;
-
-            resolve({
-              placeId: res.place_id,
-              name: res.name,
-              address: res.formatted_address || res.vicinity || null,
-              rating: res.rating ?? null,
-              openNow: typeof opened === "boolean" ? opened : null,
-              lat: lat ?? place.lat,
-              lng: lng ?? place.lng,
-            });
-          },
-        );
-      });
-
-      if (!detailed) return;
-      detailsCacheRef.current[place.placeId] = detailed;
-      setSelectedPlace(detailed);
-    } finally {
-      // best-effort cleanup flag
-      cancelled = true;
-    }
   };
 
   const renderPlaceMarker = (
     place: PlaceMarker,
-    kind: "police" | "hospital",
+    kind: "police" | "hospital"
   ) => {
     const isSelected = selectedPlace?.placeId === place.placeId;
     const isPolice = kind === "police";

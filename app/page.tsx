@@ -42,10 +42,8 @@ const RISK_PRIORITY: Record<string, number> = {
 
 function DashboardContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isLocating, setIsLocating] = useState(false);
-  const [locationError, setLocationError] = useState("");
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
-  const { userLocation, setUserLocation, clearLocation } = useLocation();
+  const { userLocation, setUserLocation, clearLocation, requestLocation, isLocating, locationError } = useLocation();
   const [poiMode, setPoiMode] = useState<"none" | "police" | "hospital">("none");
   const [flyToTarget, setFlyToTarget] = useState<{
     lat: number;
@@ -139,50 +137,23 @@ function DashboardContent() {
     });
   }, [userLocation, beritaData]);
 
-  const handleGetLocation = () => {
-    setIsLocating(true);
-    setLocationError("");
-    if (!("geolocation" in navigator)) {
-      setIsLocating(false);
-      setLocationError("Geolokasi tidak didukung");
-      return;
+  const handleLocationClick = async () => {
+    if (userLocation) {
+      clearLocation();
+      setPoiMode("none");
+      setFlyToTarget(null);
+      setAreaWarning(null);
+    } else {
+      await requestLocation();
+      setPoiMode("none");
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const loc = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        setPoiMode("none");
-
-        // Reverse geocode (Google) untuk kebutuhan "Lokasi Anda: ..."
-        const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-        let address = `Lokasi Anda: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`;
-        try {
-          if (googleKey) {
-            const res = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${loc.lat},${loc.lng}&key=${googleKey}&language=id`
-            );
-            const json = await res.json();
-            const formatted = json?.results?.[0]?.formatted_address;
-            if (formatted) address = formatted;
-          }
-        } catch {
-          // fallback: lat,lng
-        }
-
-        setUserLocation({ ...loc, address });
-        setFlyToTarget({ ...loc, zoom: 15, key: Date.now() });
-        setIsLocating(false);
-      },
-      () => {
-        setIsLocating(false);
-        setLocationError("Akses lokasi ditolak");
-      },
-      { enableHighAccuracy: true }
-    );
   };
+
+  useEffect(() => {
+    if (userLocation && !flyToTarget) {
+      setFlyToTarget({ lat: userLocation.lat, lng: userLocation.lng, zoom: 15, key: Date.now() });
+    }
+  }, [userLocation, flyToTarget]);
 
   const warningBannerClass = useMemo(() => {
     if (!areaWarning) return "";
@@ -201,11 +172,10 @@ function DashboardContent() {
       <button
         suppressHydrationWarning
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className={`absolute z-40 top-1/2 -translate-y-1/2 bg-slate-900/80 backdrop-blur-md border border-slate-700 text-slate-300 p-2.5 rounded-l-2xl shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all duration-500 hover:text-teal-400 hover:bg-slate-800 ${
-          isSidebarOpen
-            ? "right-0 lg:right-[400px] xl:right-[450px]"
-            : "right-0"
-        }`}
+        className={`absolute z-40 top-1/2 -translate-y-1/2 bg-slate-900/80 backdrop-blur-md border border-slate-700 text-slate-300 p-2.5 rounded-l-2xl shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all duration-500 hover:text-teal-400 hover:bg-slate-800 ${isSidebarOpen
+          ? "right-0 lg:right-[400px] xl:right-[450px]"
+          : "right-0"
+          }`}
       >
         {isSidebarOpen ? (
           <ChevronRight className="w-5 h-5 text-slate-400" />
@@ -258,11 +228,10 @@ function DashboardContent() {
       </div>
 
       <div
-        className={`absolute bottom-0 right-0 z-40 bg-slate-950/95 backdrop-blur-3xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-[60vh] lg:h-full w-full lg:w-[400px] xl:w-[450px] transition-transform duration-500 ease-in-out ${
-          isSidebarOpen
-            ? "translate-y-0 lg:translate-x-0"
-            : "translate-y-full lg:translate-y-0 lg:translate-x-full"
-        }`}
+        className={`absolute bottom-0 right-0 z-40 bg-slate-950/95 backdrop-blur-3xl border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col h-[60vh] lg:h-full w-full lg:w-[400px] xl:w-[450px] transition-transform duration-500 ease-in-out ${isSidebarOpen
+          ? "translate-y-0 lg:translate-x-0"
+          : "translate-y-full lg:translate-y-0 lg:translate-x-full"
+          }`}
       >
         <div className="w-full lg:w-[400px] xl:w-[450px] h-full flex flex-col min-w-[320px]">
           <div className="border-b border-slate-800 bg-slate-900/40 flex flex-col shrink min-h-0">
@@ -287,11 +256,10 @@ function DashboardContent() {
             </div>
 
             <div
-              className={`flex flex-col gap-4 overflow-y-auto custom-scrollbar transition-all duration-300 ${
-                isFilterPanelOpen
-                  ? "max-h-[60vh] p-4 pt-0 opacity-100"
-                  : "max-h-0 p-0 opacity-0 overflow-hidden"
-              }`}
+              className={`flex flex-col gap-4 overflow-y-auto custom-scrollbar transition-all duration-300 ${isFilterPanelOpen
+                ? "max-h-[60vh] p-4 pt-0 opacity-100"
+                : "max-h-0 p-0 opacity-0 overflow-hidden"
+                }`}
             >
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -349,14 +317,14 @@ function DashboardContent() {
               <div className="pt-2 border-t border-slate-800">
                 <button
                   suppressHydrationWarning
-                  onClick={handleGetLocation}
+                  onClick={handleLocationClick}
                   disabled={isLocating}
                   className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-slate-800/50 hover:bg-slate-800 text-slate-200 rounded-lg border border-slate-700 transition-colors text-xs font-semibold disabled:opacity-50"
                 >
                   <MapPin
                     className={`w-3 h-3 ${isLocating ? "animate-bounce" : ""}`}
                   />
-                  {isLocating ? "Mencari..." : "Lokasi Saya"}
+                  {isLocating ? "Mencari..." : (userLocation ? "Batalkan Lokasi Saya" : "Lokasi Saya")}
                 </button>
                 {locationError && (
                   <p className="text-[10px] text-red-500 mt-2 text-center">
@@ -366,48 +334,29 @@ function DashboardContent() {
 
                 {userLocation && (
                   <div className="mt-3">
-                    <div className="text-[11px] text-slate-300 truncate">
-                      Lokasi Anda: {userLocation.address}
-                    </div>
-
                     <div className="mt-3 grid grid-cols-1 gap-2">
                       <button
                         type="button"
                         onClick={() => setPoiMode("hospital")}
-                        className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-semibold border transition-colors ${
-                          poiMode === "hospital"
-                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
-                            : "bg-slate-800/40 border-slate-700 hover:bg-slate-800"
-                        }`}
+                        className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-semibold border transition-colors ${poiMode === "hospital"
+                          ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                          : "bg-slate-800/40 border-slate-700 hover:bg-slate-800"
+                          }`}
                       >
-                        Rumah Sakit Terdekat
+                        Cari Rumah sakit terdekat
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setPoiMode("police")}
-                        className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-semibold border transition-colors ${
-                          poiMode === "police"
-                            ? "bg-blue-500/15 border-blue-500/30 text-blue-200"
-                            : "bg-slate-800/40 border-slate-700 hover:bg-slate-800"
-                        }`}
+                        className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-semibold border transition-colors ${poiMode === "police"
+                          ? "bg-blue-500/15 border-blue-500/30 text-blue-200"
+                          : "bg-slate-800/40 border-slate-700 hover:bg-slate-800"
+                          }`}
                       >
-                        Kantor Polisi Terdekat
+                        Cari Kantor Polisi Terdekat
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        clearLocation();
-                        setPoiMode("none");
-                        setFlyToTarget(null);
-                        setAreaWarning(null);
-                      }}
-                      className="mt-3 w-full flex items-center justify-center py-2 px-4 rounded-lg text-xs font-semibold bg-slate-900/40 border border-slate-800 hover:bg-slate-900 transition-colors"
-                    >
-                      Batalkan Lokasi Saya
-                    </button>
                   </div>
                 )}
               </div>
@@ -444,22 +393,20 @@ function DashboardContent() {
                 filteredBerita.map((feed) => (
                   <div
                     key={feed.id}
-                    className={`bg-slate-900 border ${
-                      selectedBerita?.id === feed.id
-                        ? "border-yellow-500"
-                        : "border-slate-800"
-                    } rounded-2xl p-4 hover:border-slate-700 transition-colors cursor-pointer group`}
+                    className={`bg-slate-900 border ${selectedBerita?.id === feed.id
+                      ? "border-yellow-500"
+                      : "border-slate-800"
+                      } rounded-2xl p-4 hover:border-slate-700 transition-colors cursor-pointer group`}
                     onClick={() => handleSelectBerita(feed)}
                   >
                     <div className="flex justify-between items-start mb-3">
                       <span
-                        className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded border ${
-                          normalizeRiskLevel(feed.tingkat_risiko) === "CRITICAL"
-                            ? "bg-red-500/10 text-red-500 border-red-500/20"
-                            : normalizeRiskLevel(feed.tingkat_risiko) === "WARNING"
-                              ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
-                              : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                        }`}
+                        className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded border ${normalizeRiskLevel(feed.tingkat_risiko) === "CRITICAL"
+                          ? "bg-red-500/10 text-red-500 border-red-500/20"
+                          : normalizeRiskLevel(feed.tingkat_risiko) === "WARNING"
+                            ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                            : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                          }`}
                       >
                         {feed.kategori}
                       </span>
@@ -482,11 +429,10 @@ function DashboardContent() {
 
                     <div className="flex items-center justify-between border-t border-slate-800/50 pt-3">
                       <div
-                        className={`flex items-center gap-1.5 text-xs font-semibold ${
-                          feed.status_verifikasi === "Terverifikasi"
-                            ? "text-teal-500"
-                            : "text-amber-500"
-                        }`}
+                        className={`flex items-center gap-1.5 text-xs font-semibold ${feed.status_verifikasi === "Terverifikasi"
+                          ? "text-teal-500"
+                          : "text-amber-500"
+                          }`}
                       >
                         {feed.status_verifikasi === "Terverifikasi" ? (
                           <CheckCircle2 className="w-3.5 h-3.5" />

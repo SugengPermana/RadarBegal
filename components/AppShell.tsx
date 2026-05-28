@@ -14,6 +14,8 @@ import {
   AlertTriangle,
   ChevronLeft,
   X,
+  Trash2,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/providers/NotificationProvider';
@@ -24,7 +26,7 @@ import { useLocation } from '@/providers/LocationProvider';
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLoading: authLoading, signOut } = useAuth();
+  const { user, profile, isLoading: authLoading, signOut } = useAuth();
   const { userLocation } = useLocation();
   const {
     notifications,
@@ -49,6 +51,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: '/berita', icon: Newspaper, label: 'Berita' },
     { href: '/emergency', icon: Siren, label: 'Emergency' },
   ];
+
+  if (user && !authLoading) {
+    navItems.push({ href: '/history-laporan', icon: FileText, label: 'History Laporan' });
+  }
+
+  if (profile?.role?.toLowerCase() === 'admin') {
+    navItems.push({ href: '/hapus-laporan', icon: Trash2, label: 'Hapus Laporan' });
+  }
 
   const currentPage =
     navItems.find((item) => item.href === pathname)?.label ||
@@ -108,9 +118,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
-                        !notif.read ? 'bg-red-500 animate-pulse' : 'bg-transparent'
-                      }`}
+                      className={`w-2 h-2 rounded-full mt-2 shrink-0 ${!notif.read ? 'bg-red-500 animate-pulse' : 'bg-transparent'
+                        }`}
                     />
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-semibold text-slate-200 line-clamp-1">
@@ -119,13 +128,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <p className="text-xs text-slate-400 mt-1">{notif.location}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span
-                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                            normalizeRiskLevel(notif.riskLevel) === 'CRITICAL'
-                              ? 'bg-red-500/20 text-red-400'
-                              : normalizeRiskLevel(notif.riskLevel) === 'WARNING'
-                                ? 'bg-orange-500/20 text-orange-400'
-                                : 'bg-yellow-500/20 text-yellow-400'
-                          }`}
+                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${normalizeRiskLevel(notif.riskLevel) === 'CRITICAL'
+                            ? 'bg-red-500/20 text-red-400'
+                            : normalizeRiskLevel(notif.riskLevel) === 'WARNING'
+                              ? 'bg-orange-500/20 text-orange-400'
+                              : 'bg-yellow-500/20 text-yellow-400'
+                            }`}
                         >
                           {riskLabel(notif.riskLevel)}
                         </span>
@@ -226,11 +234,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-teal-500/10 text-teal-500 border-l-4 border-teal-500'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                }`}
+                className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${isActive
+                  ? 'bg-teal-500/10 text-teal-500 border-l-4 border-teal-500'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  }`}
               >
                 <item.icon className={`w-5 h-5 ${isActive ? 'text-teal-500' : ''}`} />
                 {item.label}
@@ -276,9 +283,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center px-3 py-1 rounded-full transition-all ${
-                isActive ? 'text-teal-500 bg-teal-500/10' : 'text-slate-400 hover:text-slate-200'
-              }`}
+              className={`flex flex-col items-center justify-center px-3 py-1 rounded-full transition-all ${isActive ? 'text-teal-500 bg-teal-500/10' : 'text-slate-400 hover:text-slate-200'
+                }`}
             >
               <item.icon className="w-5 h-5 mb-1" />
               <span className="text-[10px] font-bold">{item.label}</span>

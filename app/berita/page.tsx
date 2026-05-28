@@ -140,6 +140,20 @@ function BeritaContent() {
                     {heroBerita.status_verifikasi}
                   </span>
                 </div>
+                <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-1 mb-4">
+                  <span className="font-medium">Sumber:</span>
+                  <span className="text-slate-300">{heroBerita.source_name || "-"}</span>
+                  {heroBerita.source_url && (
+                    <a
+                      href={heroBerita.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-teal-400 hover:text-teal-300 underline underline-offset-2"
+                    >
+                      Buka
+                    </a>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 text-teal-400 font-semibold hover:text-teal-300 transition-colors">
                   Baca Selengkapnya
                   <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -169,6 +183,20 @@ function BeritaContent() {
                 <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-4">
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
                   {berita.lokasi}
+                </div>
+                <div className="text-[11px] text-slate-500 mb-3">
+                  <span className="font-medium">Sumber:</span>{" "}
+                  <span className="text-slate-300">{berita.source_name || "-"}</span>{" "}
+                  {berita.source_url && (
+                    <a
+                      href={berita.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-teal-400 hover:text-teal-300 underline underline-offset-2"
+                    >
+                      Buka
+                    </a>
+                  )}
                 </div>
                 <div className="flex items-center justify-between border-t border-slate-800 pt-4">
                   <div className={`flex items-center gap-1.5 text-xs font-semibold ${berita.status_verifikasi === 'Terverifikasi' ? 'text-teal-500' : 'text-amber-500'}`}>

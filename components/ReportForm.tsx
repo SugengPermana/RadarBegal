@@ -10,6 +10,23 @@ export function ReportForm() {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const withTimeout = async <T,>(
+    promise: Promise<T>,
+    ms: number,
+    timeoutMessage: string
+  ): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+    });
+
+    try {
+      return await Promise.race([promise, timeoutPromise]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
+
   const [description, setDescription] = useState('');
   const [incidentDate, setIncidentDate] = useState('');
   const [incidentTime, setIncidentTime] = useState('');
@@ -50,6 +67,18 @@ export function ReportForm() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const allowedMime = ['image/jpeg', 'image/png'];
+    if (!allowedMime.includes(file.type)) {
+      setToast({ message: 'Foto hanya boleh JPG/JPEG/PNG', type: 'error' });
+      setImageFile(null);
+      setImagePreview(null);
+      return;
+    }
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
@@ -57,10 +86,17 @@ export function ReportForm() {
   const uploadImage = async (file: File): Promise<string | null> => {
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${user?.id}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('report-images').upload(path, file, {
-      cacheControl: '3600',
-      upsert: false,
-    });
+
+    const uploadRes = await withTimeout(
+      supabase.storage.from('report-images').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      }),
+      25_000,
+      'Upload foto timeout'
+    );
+
+    const { error } = uploadRes;
     if (error) {
       console.error('Upload error:', error);
       return null;
@@ -85,16 +121,24 @@ export function ReportForm() {
         imageUrl = await uploadImage(imageFile);
       }
 
-      const { error } = await supabase.from('reports').insert({
-        description,
-        incident_date: incidentDate,
-        incident_time: incidentTime,
-        location_name: locationName,
-        latitude: coordinates.lat,
-        longitude: coordinates.lng,
-        image_url: imageUrl,
-        user_id: user.id,
-      });
+      const insertRes = await withTimeout(
+        (async () => {
+          return await supabase.from('reports').insert({
+            description,
+            incident_date: incidentDate,
+            incident_time: incidentTime,
+            location_name: locationName,
+            latitude: coordinates.lat,
+            longitude: coordinates.lng,
+            image_url: imageUrl,
+            user_id: user.id,
+          });
+        })(),
+        25_000,
+        'Kirim laporan timeout'
+      );
+
+      const { error } = insertRes;
 
       if (error) throw error;
 
@@ -104,6 +148,7 @@ export function ReportForm() {
       setIncidentTime('');
       setLocationName('');
       setCoordinates(null);
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
       setImageFile(null);
       setImagePreview(null);
       if (fileRef.current) fileRef.current.value = '';
@@ -196,7 +241,7 @@ export function ReportForm() {
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpg,image/jpeg,image/png"
             className="hidden"
             onChange={handleImageChange}
           />

@@ -25,6 +25,9 @@ function KasusContent() {
   const { filters, setFilter, applyFilters, clearFilters } = useFilters();
 
   const filteredIncidents = applyFilters(beritaData);
+  const PAGE_SIZE = 5;
+  const [itemsToShow, setItemsToShow] = useState(PAGE_SIZE);
+  const visibleIncidents = filteredIncidents.slice(0, itemsToShow);
 
   const toggleFilterPanel = () => setShowFilterPanel(!showFilterPanel);
 
@@ -37,6 +40,10 @@ function KasusContent() {
   
     return () => clearTimeout(timer);
   }, [searchInput, setFilter]);
+
+  useEffect(() => {
+    setItemsToShow(PAGE_SIZE);
+  }, [filters.q, filters.rentang, filters.lokasi, filters.status, filters.risiko]);
 
   return (
     <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col relative z-10 pt-20">
@@ -157,7 +164,7 @@ function KasusContent() {
           <div className="text-center py-12 text-slate-500">Loading Kasus Laporan...</div>
         ) : filteredIncidents.length === 0 ? (
           <div className="text-center py-12 text-slate-500">Tidak ada insiden yang sesuai dengan filter atau pencarian.</div>
-        ) : filteredIncidents.map((incident) => (
+        ) : visibleIncidents.map((incident) => (
           <div 
             key={incident.id}
             onClick={() => setSelectedIncident(incident)}
@@ -208,6 +215,18 @@ function KasusContent() {
         ))}
       </div>
 
+      {(!isLoading && filteredIncidents.length > visibleIncidents.length) && (
+        <div className="pt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setItemsToShow((v) => v + PAGE_SIZE)}
+            className="bg-slate-900 border border-slate-800 hover:border-teal-500/50 hover:bg-slate-800/50 text-slate-200 px-6 py-3 rounded-xl text-sm font-bold transition-colors"
+          >
+            Load more kasus
+          </button>
+        </div>
+      )}
+
       {/* Incident Detail Modal */}
       {selectedIncident && (
         <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -218,7 +237,6 @@ function KasusContent() {
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-950 text-xs font-bold tracking-wider border ${selectedIncident.tingkat_risiko === 'CRITICAL' ? 'text-red-500 border-red-500/30' : selectedIncident.tingkat_risiko === 'WARNING' ? 'text-amber-500 border-amber-500/30' : 'text-teal-500 border-teal-500/30'}`}>
                     {selectedIncident.tingkat_risiko} RISK
                   </span>
-                  <span className="text-slate-500 text-sm font-medium">ID: {selectedIncident.id}</span>
                 </div>
                 <h2 className="text-2xl font-bold text-slate-100">{selectedIncident.judul}</h2>
               </div>

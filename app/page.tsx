@@ -18,6 +18,7 @@ import { useNotifications } from "@/providers/NotificationProvider";
 import { BeritaBegal } from "@/types/begal";
 import { isInsideRadius } from "@/lib/geo";
 import { areaWarningMessage, normalizeRiskLevel } from "@/lib/risk";
+import { useLocation } from "@/providers/LocationProvider";
 
 export default function Dashboard() {
   return (
@@ -44,7 +45,8 @@ function DashboardContent() {
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { userLocation, setUserLocation, clearLocation } = useLocation();
+  const [poiMode, setPoiMode] = useState<"none" | "police" | "hospital">("none");
   const [flyToTarget, setFlyToTarget] = useState<{
     lat: number;
     lng: number;
@@ -147,13 +149,31 @@ function DashboardContent() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const loc = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-        setUserLocation(loc);
-        setFlyToTarget({ ...loc, zoom: 15 });
+        setPoiMode("none");
+
+        // Reverse geocode (Google) untuk kebutuhan "Lokasi Anda: ..."
+        const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        let address = `Lokasi Anda: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`;
+        try {
+          if (googleKey) {
+            const res = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${loc.lat},${loc.lng}&key=${googleKey}&language=id`
+            );
+            const json = await res.json();
+            const formatted = json?.results?.[0]?.formatted_address;
+            if (formatted) address = formatted;
+          }
+        } catch {
+          // fallback: lat,lng
+        }
+
+        setUserLocation({ ...loc, address });
+        setFlyToTarget({ ...loc, zoom: 15, key: Date.now() });
         setIsLocating(false);
       },
       () => {
@@ -232,6 +252,7 @@ function DashboardContent() {
           selectedBerita={selectedBerita}
           onSelectBerita={handleSelectBerita}
           userLocation={userLocation}
+          poiMode={poiMode}
           flyToTarget={flyToTarget}
         />
       </div>
@@ -341,6 +362,53 @@ function DashboardContent() {
                   <p className="text-[10px] text-red-500 mt-2 text-center">
                     {locationError}
                   </p>
+                )}
+
+                {userLocation && (
+                  <div className="mt-3">
+                    <div className="text-[11px] text-slate-300 truncate">
+                      Lokasi Anda: {userLocation.address}
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPoiMode("hospital")}
+                        className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-semibold border transition-colors ${
+                          poiMode === "hospital"
+                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                            : "bg-slate-800/40 border-slate-700 hover:bg-slate-800"
+                        }`}
+                      >
+                        Rumah Sakit Terdekat
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPoiMode("police")}
+                        className={`w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-xs font-semibold border transition-colors ${
+                          poiMode === "police"
+                            ? "bg-blue-500/15 border-blue-500/30 text-blue-200"
+                            : "bg-slate-800/40 border-slate-700 hover:bg-slate-800"
+                        }`}
+                      >
+                        Kantor Polisi Terdekat
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearLocation();
+                        setPoiMode("none");
+                        setFlyToTarget(null);
+                        setAreaWarning(null);
+                      }}
+                      className="mt-3 w-full flex items-center justify-center py-2 px-4 rounded-lg text-xs font-semibold bg-slate-900/40 border border-slate-800 hover:bg-slate-900 transition-colors"
+                    >
+                      Batalkan Lokasi Saya
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

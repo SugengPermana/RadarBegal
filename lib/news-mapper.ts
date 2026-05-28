@@ -24,6 +24,8 @@ export function mapNewsToBerita(row: NewsRow): BeritaBegal {
     id: row.id,
     judul: row.title,
     isi_berita: row.content,
+    source_name: row.source_name,
+    source_url: row.source_url,
     latitude: row.latitude,
     longitude: row.longitude,
     radius_meter: row.radius_meter,

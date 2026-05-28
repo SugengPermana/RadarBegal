@@ -19,11 +19,13 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/providers/NotificationProvider';
 import { formatRelativeTime } from '@/lib/format';
 import { normalizeRiskLevel, riskLabel } from '@/lib/risk';
+import { useLocation } from '@/providers/LocationProvider';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading: authLoading, signOut } = useAuth();
+  const { userLocation } = useLocation();
   const {
     notifications,
     unreadCount,
@@ -163,8 +165,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {currentPage}
             </div>
           </div>
-          <div className="flex gap-3 relative">
-            <NotificationDropdown />
+          <div className="flex gap-3 relative items-center min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <NotificationDropdown />
+              {userLocation && (
+                <span className="text-[10px] text-slate-300 truncate max-w-[120px]">
+                  Lokasi Anda: {userLocation.address}
+                </span>
+              )}
+            </div>
             <Link
               href={accountHref}
               className="text-slate-400 hover:text-teal-400 transition-colors p-2 bg-slate-800/50 rounded-full"
@@ -184,6 +193,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex items-center gap-4 relative">
           <NotificationDropdown />
+          {userLocation && (
+            <span className="text-[10px] text-slate-300 truncate max-w-[240px]">
+              Lokasi Anda: {userLocation.address}
+            </span>
+          )}
         </div>
       </header>
 

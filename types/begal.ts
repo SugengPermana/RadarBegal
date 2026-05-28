@@ -7,6 +7,8 @@ export interface BeritaBegal {
   radius_meter: number;
   lokasi: string;
   status_verifikasi: string;
+  source_name?: string | null;
+  source_url?: string | null;
   kategori: string;
   tingkat_risiko: string;
   image_url?: string | null;

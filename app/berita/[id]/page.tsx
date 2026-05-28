@@ -93,12 +93,25 @@ export default function BeritaDetailPage() {
             <div className="text-slate-200 font-semibold">{berita.radius_meter} meter</div>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <div className="text-slate-500 text-[10px] font-bold tracking-wider uppercase mb-2">Koordinat</div>
-            <div className="text-slate-200 font-semibold text-sm">{berita.latitude.toFixed(4)}, {berita.longitude.toFixed(4)}</div>
+            <div className="text-slate-500 text-[10px] font-bold tracking-wider uppercase mb-2">Sumber Berita</div>
+            <div className="text-slate-200 font-semibold">{berita.source_name || "-"}</div>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <div className="text-slate-500 text-[10px] font-bold tracking-wider uppercase mb-2">ID Berita</div>
-            <div className="text-slate-200 font-semibold">{berita.id}</div>
+            <div className="text-slate-500 text-[10px] font-bold tracking-wider uppercase mb-2">Source URL</div>
+            <div className="text-slate-200 font-semibold text-sm">
+              {berita.source_url ? (
+                <a
+                  href={berita.source_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-teal-400 hover:text-teal-300 break-all underline underline-offset-2"
+                >
+                  {berita.source_url.replace(/^https?:\/\//, "")}
+                </a>
+              ) : (
+                "-"
+              )}
+            </div>
           </div>
         </div>
 

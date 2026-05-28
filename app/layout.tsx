@@ -4,6 +4,7 @@ import { AppShell } from '@/components/AppShell';
 import { BeritaProvider } from '@/providers/BeritaProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { NotificationProvider } from '@/providers/NotificationProvider';
+import { LocationProvider } from '@/providers/LocationProvider';
 
 export const metadata: Metadata = {
   title: 'RadarBegal - Indonesia Security News',
@@ -17,7 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <BeritaProvider>
             <NotificationProvider>
-              <AppShell>{children}</AppShell>
+              <LocationProvider>
+                <AppShell>{children}</AppShell>
+              </LocationProvider>
             </NotificationProvider>
           </BeritaProvider>
         </AuthProvider>

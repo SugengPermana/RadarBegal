@@ -117,7 +117,9 @@ function MapInner({
         const { data, error } = await supabase
           .from("emergency")
           .select("*")
-          .eq("is_active", true);
+          .eq("is_active", true)
+          .not("latitude", "is", null)
+          .not("longitude", "is", null);
 
         if (cancelled || error || !data) {
           if (!cancelled) setPlacesLoading(false);
@@ -130,9 +132,11 @@ function MapInner({
           address: d.address,
           rating: null,
           openNow: null,
-          lat: d.latitude,
-          lng: d.longitude,
+          lat: Number(d.latitude),
+          lng: Number(d.longitude),
         });
+
+        console.log(data);
 
         // Sort by distance and take closest 8
         const sortByDist = (items: any[]) =>
@@ -142,8 +146,8 @@ function MapInner({
               _dist: distanceMeters(
                 userLocation.lat,
                 userLocation.lng,
-                d.latitude,
-                d.longitude
+                Number(d.latitude),
+                Number(d.longitude)
               ),
             }))
             .sort((a, b) => a._dist - b._dist)
@@ -160,8 +164,8 @@ function MapInner({
           setPolicePlaces(policeData);
           setHospitalPlaces(hospitalData);
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.error("MAP ERROR:", err);
       } finally {
         if (!cancelled) setPlacesLoading(false);
       }
@@ -220,6 +224,8 @@ function MapInner({
     place: PlaceMarker,
     kind: "police" | "hospital"
   ) => {
+    if (!place.lat || !place.lng) return null;
+
     const isSelected = selectedPlace?.placeId === place.placeId;
     const isPolice = kind === "police";
 
@@ -229,15 +235,15 @@ function MapInner({
         position={{ lat: place.lat, lng: place.lng }}
         onClick={() => handlePlaceClick(place)}
         zIndex={isSelected ? 300 : 220}
+        clickable={true}
       >
         <div className="relative flex items-center justify-center">
           <span
             className={`absolute w-8 h-8 rounded-full ${isPolice ? "bg-blue-500/25" : "bg-emerald-500/25"} animate-ping`}
           />
           <span
-            className={`w-4 h-4 rounded-full border-2 border-white shadow-lg ${
-              isPolice ? "bg-blue-500" : "bg-emerald-500"
-            }`}
+            className={`w-4 h-4 rounded-full border-2 border-white shadow-lg ${isPolice ? "bg-blue-500" : "bg-emerald-500"
+              }`}
           />
           {isSelected && (
             <MapPlacePopup
@@ -280,12 +286,12 @@ function MapInner({
               position={{ lat: berita.latitude, lng: berita.longitude }}
               onClick={() => onSelectBerita(berita)}
               zIndex={isSelected ? 100 : 1}
+              clickable={true}
             >
               <div className="relative flex items-center justify-center">
                 <div
-                  className={`text-2xl transition-transform drop-shadow-lg ${
-                    isSelected ? "scale-125" : "hover:scale-110"
-                  }`}
+                  className={`text-2xl transition-transform drop-shadow-lg ${isSelected ? "scale-125" : "hover:scale-110"
+                    }`}
                 >
                   🚨
                 </div>

@@ -36,6 +36,10 @@ export default function EmergencyPage() {
         .select("*")
         .eq("is_active", true);
 
+      console.log("USER LOCATION:", userLocation);
+      console.log("FACILITY DATA:", data);
+      console.log("ERROR:", error);
+
       if (!error && data) {
         // Calculate naive distance for sorting
         const withDistance = data.map((d) => {
@@ -172,15 +176,15 @@ export default function EmergencyPage() {
           <div className="mt-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-2xl font-black text-slate-100 tracking-tight">
-                Layanan Darurat Terdekat
+                Cari Layanan Darurat Terdekat
               </h2>
               <button
                 type="button"
                 onClick={handleLocationToggle}
                 disabled={isLocating}
                 className={`flex items-center justify-center gap-2 font-bold px-6 py-3 rounded-xl transition-colors border w-full sm:w-auto ${userLocation
-                    ? "bg-slate-800/50 hover:bg-slate-800 text-slate-300 border-slate-700"
-                    : "bg-teal-600 hover:bg-teal-500 text-white border-teal-500"
+                  ? "bg-slate-800/50 hover:bg-slate-800 text-slate-300 border-slate-700"
+                  : "bg-teal-600 hover:bg-teal-500 text-white border-teal-500"
                   }`}
               >
                 <MapPin className={`w-4 h-4 ${isLocating ? "animate-bounce" : ""}`} />
@@ -251,8 +255,8 @@ export default function EmergencyPage() {
                           <a
                             href={`tel:${facility.phone_number}`}
                             className={`w-full flex items-center justify-center gap-2 font-bold py-3 rounded-xl border transition-colors mt-auto ${isPolice
-                                ? "text-teal-400 bg-teal-500/10 border-teal-500/20 hover:bg-teal-500/20"
-                                : "text-amber-500 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20"
+                              ? "text-teal-400 bg-teal-500/10 border-teal-500/20 hover:bg-teal-500/20"
+                              : "text-amber-500 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20"
                               }`}
                           >
                             <Phone className="w-4 h-4" /> Hubungi: {facility.phone_number}

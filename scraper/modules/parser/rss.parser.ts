@@ -14,7 +14,7 @@ function stripCdata(value: string): string {
 function cleanHtmlToText(html: string): string {
   if (!html) return "";
   const $ = cheerio.load(html);
-  return $.text().replace(/\s+/g, " ").trim();
+  return $("body").text().replace(/\s+/g, " ").trim();
 }
 
 function resolveUrl(base: string, link: string): string {

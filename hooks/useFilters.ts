@@ -1,33 +1,33 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
-import { BeritaBegal } from '@/types/begal';
-import { normalizeRiskLevel } from '@/lib/risk';
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+import { BeritaBegal } from "@/types/begal";
+import { normalizeRiskLevel } from "@/lib/risk";
 
 export function useFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const q = searchParams.get('q') || '';
-  const rentang = searchParams.get('rentang') || 'Semua';
-  const lokasi = searchParams.get('lokasi') || 'Semua Lokasi';
-  const status = searchParams.get('status') || 'Semua';
-  const risiko = searchParams.get('risiko') || 'Semua';
-  const id = searchParams.get('id');
+  const q = searchParams.get("q") || "";
+  const rentang = searchParams.get("rentang") || "Semua";
+  const lokasi = searchParams.get("lokasi") || "Semua Lokasi";
+  const status = searchParams.get("status") || "Semua";
+  const risiko = searchParams.get("risiko") || "Semua";
+  const id = searchParams.get("id");
 
   const setFilter = useCallback(
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (value && value !== 'Semua' && value !== 'Semua Lokasi') {
+      if (value && value !== "Semua" && value !== "Semua Lokasi") {
         params.set(key, value);
       } else {
         params.delete(key);
       }
       router.push(`${pathname}?${params.toString()}`);
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams],
   );
 
   const clearFilters = useCallback(() => {
@@ -38,41 +38,51 @@ export function useFilters() {
     (data: BeritaBegal[]) => {
       return data.filter((item) => {
         // Search query (q)
-        if (q && !item.judul.toLowerCase().includes(q.toLowerCase()) && !item.isi_berita?.toLowerCase().includes(q.toLowerCase())) {
+        if (
+          q &&
+          !item.judul.toLowerCase().includes(q.toLowerCase()) &&
+          !item.isi_berita?.toLowerCase().includes(q.toLowerCase())
+        ) {
           return false;
         }
 
         // Lokasi
-        if (lokasi !== 'Semua Lokasi' && !item.lokasi.toLowerCase().includes(lokasi.toLowerCase())) {
+        if (
+          lokasi !== "Semua Lokasi" &&
+          !item.lokasi.toLowerCase().includes(lokasi.toLowerCase())
+        ) {
           return false;
         }
 
         // Status
-        if (status !== 'Semua' && item.status_verifikasi !== status) {
+        if (status !== "Semua" && item.status_verifikasi !== status) {
           return false;
         }
 
         // Risiko
-        if (risiko !== 'Semua' && normalizeRiskLevel(item.tingkat_risiko) !== risiko) {
+        if (
+          risiko !== "Semua" &&
+          normalizeRiskLevel(item.tingkat_risiko) !== risiko
+        ) {
           return false;
         }
 
         // Rentang Waktu
-        if (rentang !== 'Semua') {
+        if (rentang !== "Semua") {
           const itemDate = new Date(item.created_at);
           const now = new Date();
           const diffTime = Math.abs(now.getTime() - itemDate.getTime());
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          if (rentang === 'Hari Ini' && diffDays > 1) return false;
-          if (rentang === '7 Hari Terakhir' && diffDays > 7) return false;
-          if (rentang === '30 Hari Terakhir' && diffDays > 30) return false;
+
+          if (rentang === "Hari Ini" && diffDays > 1) return false;
+          if (rentang === "7 Hari Terakhir" && diffDays > 7) return false;
+          if (rentang === "30 Hari Terakhir" && diffDays > 30) return false;
         }
 
         return true;
       });
     },
-    [q, rentang, lokasi, status, risiko]
+    [q, rentang, lokasi, status, risiko],
   );
 
   return {

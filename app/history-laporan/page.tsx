@@ -9,11 +9,11 @@ import { Trash2, AlertCircle, Loader2, MapPin, Clock, FileText } from "lucide-re
 export default function HistoryLaporanPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  
+
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login?redirect=/history-laporan");
@@ -43,13 +43,13 @@ export default function HistoryLaporanPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus laporan ini?")) return;
-    
+
     setDeletingId(id);
     const { error } = await supabase
       .from("reports")
       .delete()
       .eq("id", id);
-      
+
     if (!error) {
       setReports((prev) => prev.filter((r) => r.id !== id));
     } else {

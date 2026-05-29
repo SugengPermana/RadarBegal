@@ -1,16 +1,16 @@
-import { SOURCES } from '../config/sources';
-import { DEFAULT_VERIFICATION_STATUS } from '../config/constants';
-import { isRelevantCrimeNews, detectCrimeType } from '../config/keywords';
-import type { RawArticle, ScraperRunStats } from '../types/article';
-import { isWithinMaxAge } from '../lib/date';
-import { logger } from '../lib/logger';
-import { parseSource, enrichArticleContent } from '../modules/parser';
-import { extractLocationFromText } from '../modules/location/location.extractor';
-import { geocodeLocation } from '../modules/geocoder';
-import { analyzeRiskLevel, radiusForRisk } from '../modules/risk/risk.analyzer';
-import { isDuplicate } from '../modules/duplicate/duplicate.checker';
-import { insertNews } from '../modules/repository/news.repository';
-import type { NewsSourceConfig } from '../types/article';
+import { SOURCES } from "../config/sources";
+import { DEFAULT_VERIFICATION_STATUS } from "../config/constants";
+import { isRelevantCrimeNews, detectCrimeType } from "../config/keywords";
+import type { RawArticle, ScraperRunStats } from "../types/article";
+import { isWithinMaxAge } from "../lib/date";
+import { logger } from "../lib/logger";
+import { parseSource, enrichArticleContent } from "../modules/parser";
+import { extractLocationFromText } from "../modules/location/location.extractor";
+import { geocodeLocation } from "../modules/geocoder";
+import { analyzeRiskLevel, radiusForRisk } from "../modules/risk/risk.analyzer";
+import { isDuplicate } from "../modules/duplicate/duplicate.checker";
+import { insertNews } from "../modules/repository/news.repository";
+import type { NewsSourceConfig } from "../types/article";
 
 function emptyStats(): ScraperRunStats {
   return {
@@ -28,7 +28,7 @@ function emptyStats(): ScraperRunStats {
 
 async function processArticle(
   raw: RawArticle,
-  stats: ScraperRunStats
+  stats: ScraperRunStats,
 ): Promise<void> {
   stats.candidatesFound++;
 
@@ -58,7 +58,9 @@ async function processArticle(
   const geo = await geocodeLocation(location.geocodeQuery);
   if (!geo) {
     stats.skippedGeocode++;
-    logger.warn(`Skip geocode fail: ${enriched.title} (${location.geocodeQuery})`);
+    logger.warn(
+      `Skip geocode fail: ${enriched.title} (${location.geocodeQuery})`,
+    );
     return;
   }
 
@@ -93,7 +95,7 @@ async function processArticle(
 
 async function scrapeSource(
   source: NewsSourceConfig,
-  stats: ScraperRunStats
+  stats: ScraperRunStats,
 ): Promise<void> {
   try {
     logger.info(`── Source: ${source.name} (${source.id}) [${source.type}]`);
@@ -118,22 +120,22 @@ export async function runScraper(): Promise<ScraperRunStats> {
   const stats = emptyStats();
   const started = Date.now();
 
-  logger.info('═══════════════════════════════════════════');
-  logger.info('RadarBegal Scraper — Jabodetabek Multi-Source');
+  logger.info("═══════════════════════════════════════════");
+  logger.info("RadarBegal Scraper — Jabodetabek Multi-Source");
   logger.info(`Sources: ${SOURCES.length} | Max age: 30 days`);
-  logger.info('═══════════════════════════════════════════');
+  logger.info("═══════════════════════════════════════════");
 
   for (const source of SOURCES) {
     await scrapeSource(source, stats);
   }
 
   const elapsed = ((Date.now() - started) / 1000).toFixed(1);
-  logger.info('───────────────────────────────────────────');
-  logger.info('Scraper run complete', {
+  logger.info("───────────────────────────────────────────");
+  logger.info("Scraper run complete", {
     elapsedSec: elapsed,
     ...stats,
   });
-  logger.info('───────────────────────────────────────────');
+  logger.info("───────────────────────────────────────────");
 
   return stats;
 }

@@ -333,6 +333,7 @@ function MapInner({
 export default function MapContainer(props: MapContainerProps) {
   const defaultCenter = { lat: -6.2088, lng: 106.8456 };
 
+
   return (
     <APIProvider
       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}

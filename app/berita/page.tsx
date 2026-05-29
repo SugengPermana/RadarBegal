@@ -2,7 +2,7 @@
 
 import { ShieldAlert, MapPin, Clock, ChevronRight, Search, X, Filter, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useEffect,useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useBerita } from "@/providers/BeritaProvider";
 import { useFilters } from "@/hooks/useFilters";
 
@@ -29,7 +29,7 @@ function BeritaContent() {
     const timer = setTimeout(() => {
       setFilter("q", searchInput);
     }, 400);
-  
+
     return () => clearTimeout(timer);
   }, [searchInput, setFilter]);
   return (

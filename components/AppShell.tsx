@@ -192,6 +192,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+
       <header className="hidden md:flex bg-slate-900/80 backdrop-blur-md border-b border-slate-800 fixed top-0 right-0 w-[calc(100%-280px)] h-16 z-30 px-8 items-center justify-between">
         <div className="flex flex-col justify-center">
           <span className="text-[10px] text-teal-500 font-bold uppercase tracking-widest leading-none mb-1">

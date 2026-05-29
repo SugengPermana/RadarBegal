@@ -4,7 +4,7 @@ export function distanceMeters(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
@@ -20,7 +20,7 @@ export function isInsideRadius(
   userLng: number,
   centerLat: number,
   centerLng: number,
-  radiusMeter: number
+  radiusMeter: number,
 ): boolean {
   return distanceMeters(userLat, userLng, centerLat, centerLng) <= radiusMeter;
 }

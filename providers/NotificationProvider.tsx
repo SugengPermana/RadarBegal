@@ -19,10 +19,10 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType>({
   notifications: [],
   unreadCount: 0,
-  markAsRead: () => {},
-  markAllAsRead: () => {},
+  markAsRead: () => { },
+  markAllAsRead: () => { },
   focusNewsId: null,
-  setFocusNewsId: () => {},
+  setFocusNewsId: () => { },
 });
 
 export const useNotifications = () => useContext(NotificationContext);
@@ -118,6 +118,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [notifications]);
 
   const unreadCount = notifications.filter((n) => !readIds.has(n.id)).length;
+
 
   return (
     <NotificationContext.Provider

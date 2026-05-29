@@ -1,4 +1,4 @@
-import { MAX_ARTICLE_AGE_DAYS } from '../config/constants';
+import { MAX_ARTICLE_AGE_DAYS } from "../config/constants";
 
 export function parseArticleDate(raw: string | undefined | null): Date | null {
   if (!raw?.trim()) return null;
@@ -22,9 +22,9 @@ export function parseArticleDate(raw: string | undefined | null): Date | null {
     desember: 11,
   };
 
-  const match = raw.toLowerCase().match(
-    /(\d{1,2})\s+(\w+)\s+(\d{4})(?:[,\s]+(\d{1,2})[.:](\d{2}))?/
-  );
+  const match = raw
+    .toLowerCase()
+    .match(/(\d{1,2})\s+(\w+)\s+(\d{4})(?:[,\s]+(\d{1,2})[.:](\d{2}))?/);
   if (match) {
     const day = parseInt(match[1], 10);
     const month = idMonths[match[2]];
@@ -39,7 +39,10 @@ export function parseArticleDate(raw: string | undefined | null): Date | null {
   return null;
 }
 
-export function isWithinMaxAge(date: Date, maxDays = MAX_ARTICLE_AGE_DAYS): boolean {
+export function isWithinMaxAge(
+  date: Date,
+  maxDays = MAX_ARTICLE_AGE_DAYS,
+): boolean {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - maxDays);
   return date >= cutoff && date <= new Date();

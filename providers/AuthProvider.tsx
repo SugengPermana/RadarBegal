@@ -14,13 +14,14 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
 }
 
+
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   profile: null,
   isLoading: true,
-  signOut: async () => {},
-  refreshProfile: async () => {},
+  signOut: async () => { },
+  refreshProfile: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);

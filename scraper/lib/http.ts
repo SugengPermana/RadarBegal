@@ -1,6 +1,6 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { SCRAPER_USER_AGENT, HTTP_DELAY_MS } from '../config/constants';
-import { logger } from './logger';
+import axios, { AxiosRequestConfig } from "axios";
+import { SCRAPER_USER_AGENT, HTTP_DELAY_MS } from "../config/constants";
+import { logger } from "./logger";
 
 let lastRequestAt = 0;
 
@@ -13,16 +13,16 @@ async function throttle() {
 
 export async function fetchHtml(
   url: string,
-  config?: AxiosRequestConfig
+  config?: AxiosRequestConfig,
 ): Promise<string> {
   await throttle();
   logger.debug(`GET ${url}`);
   const response = await axios.get<string>(url, {
     timeout: 25_000,
     headers: {
-      'User-Agent': SCRAPER_USER_AGENT,
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'id-ID,id;q=0.9,en;q=0.5',
+      "User-Agent": SCRAPER_USER_AGENT,
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "id-ID,id;q=0.9,en;q=0.5",
       ...config?.headers,
     },
     maxRedirects: 5,
@@ -34,7 +34,7 @@ export async function fetchHtml(
 
 export async function fetchWithRetry(
   url: string,
-  retries = 2
+  retries = 2,
 ): Promise<string> {
   let lastError: unknown;
   for (let i = 0; i <= retries; i++) {

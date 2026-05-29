@@ -7,7 +7,7 @@ import { NotificationProvider } from '@/providers/NotificationProvider';
 import { LocationProvider } from '@/providers/LocationProvider';
 
 export const metadata: Metadata = {
-  title: 'RadarBegal - Indonesia Security News',
+  title: 'RadarBegal',
   description: 'Sistem Kewaspadaan Warga Jakarta',
 };
 

@@ -1,4 +1,4 @@
-import { BeritaBegal } from '@/types/begal';
+import { BeritaBegal } from "@/types/begal";
 
 export interface NewsRow {
   id: number;

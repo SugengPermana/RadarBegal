@@ -129,3 +129,4 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>;
 }
 
+

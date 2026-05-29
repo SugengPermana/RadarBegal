@@ -22,6 +22,7 @@ export function MapPlacePopup({
     place.name
   )}&query_place_id=${encodeURIComponent(place.placeId)}`;
 
+
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 bottom-6 w-[min(320px,calc(100vw-2rem))] pointer-events-auto z-[250]"

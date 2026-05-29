@@ -67,7 +67,7 @@ export default function HapusLaporanPage() {
           <Trash2 className="w-8 h-8 text-red-500" /> Manajemen Laporan
         </h1>
         <p className="text-slate-400">
-          Hanya admin yang dapat melihat dan menghapus laporan pengguna.
+          Daftar laporan dari para user
         </p>
       </div>
 

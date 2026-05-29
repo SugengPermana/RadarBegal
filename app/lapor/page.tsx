@@ -29,7 +29,7 @@ export default function LaporPage() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-950 p-6 gap-4">
         <p className="text-amber-400 text-center">
-          Anda harus login terlebih dahulu untuk membuat laporan.
+          Harap login terlebih dahulu untuk membuat laporan.
         </p>
         <Link
           href="/login?redirect=/lapor"

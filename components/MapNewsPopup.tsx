@@ -72,9 +72,8 @@ export function MapNewsPopup({ berita, onClose }: MapNewsPopupProps) {
         </div>
 
         <div
-          className={`flex items-center gap-1 text-xs font-semibold mb-3 ${
-            berita.status_verifikasi === 'Terverifikasi' ? 'text-teal-500' : 'text-amber-500'
-          }`}
+          className={`flex items-center gap-1 text-xs font-semibold mb-3 ${berita.status_verifikasi === 'Terverifikasi' ? 'text-teal-500' : 'text-amber-500'
+            }`}
         >
           {berita.status_verifikasi === 'Terverifikasi' ? (
             <CheckCircle2 className="w-3.5 h-3.5" />

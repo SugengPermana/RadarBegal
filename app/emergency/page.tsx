@@ -105,7 +105,7 @@ export default function EmergencyPage() {
           ) : !user ? (
             <div className="text-center py-8">
               <p className="text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl py-4 px-6 mb-6">
-                Anda harus login terlebih dahulu untuk membuat laporan.
+                Silahkan login terlebih dahulu untuk dapat membuat laporan.
               </p>
               <Link
                 href="/login?redirect=/emergency"

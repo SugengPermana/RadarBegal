@@ -42,7 +42,7 @@ export default function AccountPage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 max-w-lg mx-auto w-full pt-20 md:pt-8">
-      <h1 className="text-3xl font-black text-slate-100 mb-8">Profil Akun</h1>
+      <h1 className="text-3xl font-black text-slate-100 mb-8">Profil Account</h1>
 
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
         <div className="flex flex-col items-center mb-8">

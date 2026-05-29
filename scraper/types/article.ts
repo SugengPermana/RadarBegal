@@ -1,4 +1,4 @@
-export type SourceType = 'rss' | 'html';
+export type SourceType = "rss" | "html";
 
 export interface NewsSourceConfig {
   id: string;
@@ -6,7 +6,15 @@ export interface NewsSourceConfig {
   type: SourceType;
   url: string;
   /** Parser hint for HTML listing pages */
-  parser?: 'detik' | 'kompas' | 'tribun' | 'cnn' | 'liputan6' | 'kumparan' | 'antara' | 'generic';
+  parser?:
+    | "detik"
+    | "kompas"
+    | "tribun"
+    | "cnn"
+    | "liputan6"
+    | "kumparan"
+    | "antara"
+    | "generic";
   /** Max articles to process per run from this source */
   maxPerRun?: number;
 }
@@ -28,7 +36,7 @@ export interface ParsedArticle extends RawArticle {
   latitude: number;
   longitude: number;
   radiusMeter: number;
-  riskLevel: 'CRITICAL' | 'WARNING' | 'CAUTION';
+  riskLevel: "CRITICAL" | "WARNING" | "CAUTION";
   verificationStatus: string;
   incidentAt: Date;
 }

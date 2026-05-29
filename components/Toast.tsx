@@ -19,11 +19,10 @@ export function Toast({ message, type = 'success', onClose, duration = 4000 }: T
   return (
     <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-bottom-4 fade-in">
       <div
-        className={`flex items-center gap-3 px-5 py-3 rounded-xl border shadow-2xl backdrop-blur-md ${
-          type === 'success'
+        className={`flex items-center gap-3 px-5 py-3 rounded-xl border shadow-2xl backdrop-blur-md ${type === 'success'
             ? 'bg-teal-950/95 border-teal-500/40 text-teal-100'
             : 'bg-red-950/95 border-red-500/40 text-red-100'
-        }`}
+          }`}
       >
         {type === 'success' ? (
           <CheckCircle2 className="w-5 h-5 shrink-0" />

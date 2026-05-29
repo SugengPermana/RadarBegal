@@ -1,13 +1,13 @@
-import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, existsSync } from "fs";
+import { resolve } from "path";
 
 function parseEnvFile(filePath: string) {
   if (!existsSync(filePath)) return;
-  const content = readFileSync(filePath, 'utf8');
-  for (const line of content.split('\n')) {
+  const content = readFileSync(filePath, "utf8");
+  for (const line of content.split("\n")) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
     let value = trimmed.slice(eq + 1).trim();
@@ -25,12 +25,15 @@ function parseEnvFile(filePath: string) {
 
 export function loadScraperEnv() {
   const root = process.cwd();
-  parseEnvFile(resolve(root, '.env.local'));
-  parseEnvFile(resolve(root, '.env'));
+  parseEnvFile(resolve(root, ".env.local"));
+  parseEnvFile(resolve(root, ".env"));
 
-  const required = ['NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] as const;
+  const required = [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+  ] as const;
   const missing = required.filter((k) => !process.env[k]);
   if (missing.length > 0) {
-    throw new Error(`Missing env: ${missing.join(', ')}`);
+    throw new Error(`Missing env: ${missing.join(", ")}`);
   }
 }

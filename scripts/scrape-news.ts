@@ -11,8 +11,8 @@
  *   MAPBOX_ACCESS_TOKEN (opsional)
  *   SCRAPER_DEBUG=1
  */
-import { loadScraperEnv } from '../scraper/lib/env';
+import { loadScraperEnv } from "../scraper/lib/env";
 
 loadScraperEnv();
 
-void import('../scraper/index');
+void import("../scraper/index");

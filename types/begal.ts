@@ -31,6 +31,6 @@ export interface AppNotification {
   title: string;
   location: string;
   riskLevel: string;
-  publishedAt: string;
   read: boolean;
+  publishedAt: string;
 }

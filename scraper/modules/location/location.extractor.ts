@@ -1,4 +1,4 @@
-import { JABODETABEK_AREAS } from '../../config/areas';
+import { JABODETABEK_AREAS } from "../../config/areas";
 
 export interface ExtractedLocation {
   locationName: string;
@@ -7,7 +7,7 @@ export interface ExtractedLocation {
 
 /** Area diurutkan panjang nama desc agar "Jakarta Selatan" menang sebelum "Jakarta" */
 const SORTED_AREAS = [...JABODETABEK_AREAS].sort(
-  (a, b) => b.name.length - a.name.length
+  (a, b) => b.name.length - a.name.length,
 );
 
 const DI_PATTERN =
@@ -15,12 +15,12 @@ const DI_PATTERN =
 
 export function extractLocationFromText(
   title: string,
-  content: string
+  content: string,
 ): ExtractedLocation | null {
   const text = `${title} ${content}`;
 
   for (const area of SORTED_AREAS) {
-    const regex = new RegExp(`\\b${escapeRegex(area.name)}\\b`, 'i');
+    const regex = new RegExp(`\\b${escapeRegex(area.name)}\\b`, "i");
     if (regex.test(text)) {
       return {
         locationName: area.name,
@@ -34,7 +34,7 @@ export function extractLocationFromText(
   const candidates: string[] = [];
   const diRegex = new RegExp(DI_PATTERN.source, DI_PATTERN.flags);
   while ((match = diRegex.exec(text)) !== null) {
-    const place = match[1].trim().replace(/\s+/g, ' ');
+    const place = match[1].trim().replace(/\s+/g, " ");
     if (place.length >= 3 && place.length <= 40) {
       candidates.push(place);
     }
@@ -42,7 +42,7 @@ export function extractLocationFromText(
 
   for (const place of candidates) {
     const known = SORTED_AREAS.find(
-      (a) => a.name.toLowerCase() === place.toLowerCase()
+      (a) => a.name.toLowerCase() === place.toLowerCase(),
     );
     if (known) {
       return { locationName: known.name, geocodeQuery: known.geocodeQuery };
@@ -61,30 +61,30 @@ export function extractLocationFromText(
 }
 
 function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function isLikelyJabodetabekPlace(place: string): boolean {
   const lower = place.toLowerCase();
   const hints = [
-    'jakarta',
-    'bogor',
-    'depok',
-    'tangerang',
-    'bekasi',
-    'cibubur',
-    'kemang',
-    'bsd',
-    'serpong',
-    'cikarang',
-    'karawaci',
-    'cileungsi',
-    'kemayoran',
-    'jakbar',
-    'jaksel',
-    'jakpus',
-    'jakut',
-    'jakbar',
+    "jakarta",
+    "bogor",
+    "depok",
+    "tangerang",
+    "bekasi",
+    "cibubur",
+    "kemang",
+    "bsd",
+    "serpong",
+    "cikarang",
+    "karawaci",
+    "cileungsi",
+    "kemayoran",
+    "jakbar",
+    "jaksel",
+    "jakpus",
+    "jakut",
+    "jakbar",
   ];
   return hints.some((h) => lower.includes(h));
 }

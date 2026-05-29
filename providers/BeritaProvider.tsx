@@ -77,6 +77,7 @@ export const BeritaProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+
   return (
     <BeritaContext.Provider value={{ beritaData, isLoading, error }}>
       {children}

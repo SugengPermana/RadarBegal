@@ -35,11 +35,11 @@ export default function BeritaDetailPage() {
     );
   }
 
-  const riskBadgeClass = berita.tingkat_risiko === 'CRITICAL' 
-    ? 'bg-red-500/10 text-red-500 border-red-500/30' 
-    : berita.tingkat_risiko === 'WARNING' 
-    ? 'bg-orange-500/10 text-orange-500 border-orange-500/30' 
-    : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
+  const riskBadgeClass = berita.tingkat_risiko === 'CRITICAL'
+    ? 'bg-red-500/10 text-red-500 border-red-500/30'
+    : berita.tingkat_risiko === 'WARNING'
+      ? 'bg-orange-500/10 text-orange-500 border-orange-500/30'
+      : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
 
   return (
     <div className="flex-1 bg-slate-950 min-h-screen pt-20 md:pt-8">

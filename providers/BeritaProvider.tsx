@@ -27,7 +27,7 @@ export const BeritaProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    const fetchBerita = async () => {
+    const fetchBerita = async (retries = 3) => {
       try {
         const { data, error: fetchError } = await supabase
           .from('news')
@@ -38,11 +38,19 @@ export const BeritaProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (mounted && data) {
           setBeritaData((data as NewsRow[]).map(mapNewsToBerita));
+          setIsLoading(false);
         }
       } catch (err) {
-        if (mounted) setError(err as Error);
-      } finally {
-        if (mounted) setIsLoading(false);
+        console.error("Gagal memuat data berita:", err);
+        if (retries > 0 && mounted) {
+          console.log(`Mencoba ulang memuat data... (${retries} percobaan tersisa)`);
+          setTimeout(() => fetchBerita(retries - 1), 3000);
+        } else {
+          if (mounted) {
+            setError(err as Error);
+            setIsLoading(false);
+          }
+        }
       }
     };
 

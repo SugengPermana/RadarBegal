@@ -12,8 +12,20 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Inject runtime environment variables to window.ENV for Cloud Run compatibility
+  const envScript = `
+    window.ENV = {
+      NEXT_PUBLIC_SUPABASE_URL: "${process.env.NEXT_PUBLIC_SUPABASE_URL || ''}",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}",
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: "${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}"
+    };
+  `;
+
   return (
     <html lang="id" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: envScript }} />
+      </head>
       <body className="bg-slate-950 text-slate-200" suppressHydrationWarning>
         <AuthProvider>
           <BeritaProvider>

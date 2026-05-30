@@ -339,7 +339,10 @@ export default function MapContainer(props: MapContainerProps) {
 
   return (
     <APIProvider
-      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+      apiKey={
+        (typeof window !== "undefined" && (window as any).ENV?.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) ||
+        process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
+      }
       libraries={["places"]}
     >
       <div className="w-full h-full">

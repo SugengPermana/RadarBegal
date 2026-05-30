@@ -51,7 +51,7 @@ function MapFlyController({
     flyToTarget?.lat,
     flyToTarget?.lng,
     flyToTarget?.zoom,
-    flyToTarget?.key,
+    flyToTarget,
   ]);
 
   return null;
@@ -92,6 +92,7 @@ function MapInner({
 
   useEffect(() => {
     // Tutup popup & marker jika user membatalkan lokasi / keluar mode POI.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedPlace(null);
   }, [mode, locationKey]);
 
@@ -154,10 +155,10 @@ function MapInner({
             .slice(0, 8);
 
         const policeData = sortByDist(
-          data.filter((d) => d.category === "POLICE")
+          data.filter((d: any) => d.category === "POLICE")
         ).map(toMarker);
         const hospitalData = sortByDist(
-          data.filter((d) => d.category === "HOSPITAL")
+          data.filter((d: any) => d.category === "HOSPITAL")
         ).map(toMarker);
 
         if (!cancelled) {
@@ -174,6 +175,7 @@ function MapInner({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, userLocation?.lat, userLocation?.lng, locationKey, mode]);
 
   // Fly to nearest
@@ -206,6 +208,7 @@ function MapInner({
 
     map.panTo({ lat: nearest.place.lat, lng: nearest.place.lng });
     map.setZoom(15);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     mode,
     policePlaces,

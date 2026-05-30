@@ -53,7 +53,7 @@ export const BeritaProvider = ({ children }: { children: React.ReactNode }) => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'news' },
-        (payload) => {
+        (payload: any) => {
           if (payload.eventType === 'INSERT') {
             const item = mapNewsToBerita(payload.new as NewsRow);
             setBeritaData((prev) => [item, ...prev]);

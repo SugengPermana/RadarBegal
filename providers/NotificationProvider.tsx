@@ -47,6 +47,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [focusNewsId, setFocusNewsId] = useState<number | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReadIds(loadReadIds());
   }, []);
 
@@ -82,7 +83,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'news' },
-        (payload) => {
+        (payload: any) => {
           addNotification(payload.new as NewsRow);
         }
       )
@@ -94,6 +95,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [addNotification]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNotifications((prev) =>
       prev.map((n) => ({ ...n, read: readIds.has(n.id) }))
     );

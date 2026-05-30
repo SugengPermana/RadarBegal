@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const NotificationDropdown = () => (
+  const renderNotificationDropdown = () => (
     <>
       <button
         suppressHydrationWarning
@@ -175,7 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex gap-3 relative items-center min-w-0">
             <div className="flex items-center gap-2 min-w-0">
-              <NotificationDropdown />
+              {renderNotificationDropdown()}
               {userLocation && (
                 <span className="text-[10px] text-slate-300 truncate max-w-[120px]">
                   Lokasi Anda: {userLocation.address}
@@ -201,7 +201,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <h1 className="text-xl font-bold text-slate-100 leading-none">{currentPage}</h1>
         </div>
         <div className="flex items-center gap-4 relative">
-          <NotificationDropdown />
+          {renderNotificationDropdown()}
           {userLocation && (
             <span className="text-[10px] text-slate-300 truncate max-w-[240px]">
               Lokasi Anda: {userLocation.address}

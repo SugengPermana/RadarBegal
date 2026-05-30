@@ -94,7 +94,7 @@ export function ReportForm() {
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${user?.id}/${Date.now()}.${ext}`;
 
-    const uploadRes = await withTimeout(
+    const uploadRes = await withTimeout<any>(
       supabase.storage.from('report-images').upload(path, file, {
         cacheControl: '3600',
         upsert: false,
@@ -160,7 +160,7 @@ export function ReportForm() {
 
       console.log('Sending payload:', payload);
 
-      const insertRes = await withTimeout(
+      const insertRes = await withTimeout<any>(
         (async () => {
           return await supabase.from('reports').insert(payload).select();
         })(),

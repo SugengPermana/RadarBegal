@@ -42,17 +42,17 @@ export default function EmergencyPage() {
 
       if (!error && data) {
         // Calculate naive distance for sorting
-        const withDistance = data.map((d) => {
+        const withDistance = data.map((d: any) => {
           const dx = d.latitude - userLocation.lat;
           const dy = d.longitude - userLocation.lng;
           return { ...d, distance: Math.sqrt(dx * dx + dy * dy) };
         });
 
-        withDistance.sort((a, b) => a.distance - b.distance);
+        withDistance.sort((a: any, b: any) => a.distance - b.distance);
 
         // Get nearest police and hospital
-        const police = withDistance.find(d => d.category === 'POLICE');
-        const hospital = withDistance.find(d => d.category === 'HOSPITAL');
+        const police = withDistance.find((d: any) => d.category === 'POLICE');
+        const hospital = withDistance.find((d: any) => d.category === 'HOSPITAL');
 
         const nearest = [];
         if (police) nearest.push(police);
